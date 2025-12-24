@@ -2,7 +2,8 @@
 
 > **Proyecto:** CRUD Didáctico con Supabase  
 > **Fecha:** 2025-12-23  
-> **Tipo de Persistencia:** PostgreSQL (Supabase)
+> **Tipo de Persistencia:** PostgreSQL (Supabase)  
+> **Stack:** Python POO (sin frameworks)
 
 ---
 
@@ -72,9 +73,9 @@
 └───────────────────────────────────────────────────┘
 ```
 
-**Variable:** `NEXT_PUBLIC_SUPABASE_URL`
+**Variable en .env:** `SUPABASE_URL`
 
-### 2.2 SUPABASE_ANON_KEY (Publishable API Key)
+### 2.2 SUPABASE_KEY (Publishable API Key)
 
 **Ruta:** `Project Overview` → Scroll al medio → `Project API`
 
@@ -89,57 +90,19 @@
 │  │  └─────────────────────────────────────┘    │  │
 │  │                          [Copy] [Reveal]    │  │
 │  │                                             │  │
-│  │  ⚠️ Esta key es PÚBLICA y segura de        │  │
-│  │     exponer en el frontend (RLS protege)   │  │
+│  │  ⚠️ Esta key es PÚBLICA y segura porque    │  │
+│  │     Row Level Security (RLS) protege       │  │
 │  │                                             │  │
 └───────────────────────────────────────────────────┘
 ```
 
-**Variable:** `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-### 2.3 JWT_SECRET (Legacy JWT Secret) - Opcional
-
-**Ruta:** `Project Settings` (ícono engranaje) → `API` → `JWT Settings`
-
-```
-┌───────────────────────────────────────────────────┐
-│  Project Settings > API                           │
-├───────────────────────────────────────────────────┤
-│                                                   │
-│  JWT Settings                                     │
-│  ─────────────                                    │
-│                                                   │
-│  JWT Secret                                       │
-│  ┌─────────────────────────────────────┐          │
-│  │ super-secret-jwt-token-with-at...   │          │
-│  └─────────────────────────────────────┘          │
-│                          [Copy] [Reveal]          │
-│                                                   │
-│  ⚠️ Esta key es SECRETA - NO exponer            │
-│     Solo usar en backend/server-side             │
-│                                                   │
-└───────────────────────────────────────────────────┘
-```
-
-**Variable:** `SUPABASE_JWT_SECRET` (sin NEXT_PUBLIC_)
-
-### 2.4 SERVICE_ROLE_KEY - Solo para Admin
-
-**Ruta:** `Project Settings` → `API` → `Project API keys`
-
-```
-⚠️ ADVERTENCIA: Esta key salta TODAS las políticas RLS
-   Solo usar en operaciones de servidor confiables
-   NUNCA exponer en el frontend
-```
-
-**Variable:** `SUPABASE_SERVICE_ROLE_KEY` (sin NEXT_PUBLIC_)
+**Variable en .env:** `SUPABASE_KEY`
 
 ---
 
-## 3. Configuración de Variables de Entorno
+## 3. Configuración de Variables de Entorno (Python)
 
-### 3.1 Archivo `.env.local` (Desarrollo Local)
+### 3.1 Archivo `.env` (Desarrollo Local)
 
 **Ubicación:** Raíz del proyecto  
 **⚠️ NUNCA subir a Git**
@@ -152,16 +115,10 @@
 # NO subir a Git - está en .gitignore
 
 # URL del proyecto Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
 
-# Anon Key (pública, segura para frontend)
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-# JWT Secret (opcional, solo para validación server-side)
-SUPABASE_JWT_SECRET=super-secret-jwt-token...
-
-# Service Role Key (PELIGROSA - solo backend)
-# SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# Anon Key (pública, segura porque RLS protege)
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### 3.2 Archivo `.env.example` (Plantilla)
@@ -173,56 +130,84 @@ SUPABASE_JWT_SECRET=super-secret-jwt-token...
 # ============================================
 # SUPABASE - Variables de Entorno (PLANTILLA)
 # ============================================
-# Copiar este archivo como .env.local y completar con valores reales
-# Obtener valores de: https://supabase.com/dashboard/project/TU_PROYECTO
+# Copiar este archivo como .env y completar con valores reales
 
 # URL del proyecto Supabase
 # Ruta: Project Overview > Project API > Project URL
-NEXT_PUBLIC_SUPABASE_URL=tu_url_aqui
+SUPABASE_URL=tu_url_aqui
 
-# Anon Key (pública, segura para frontend)
+# Anon Key (pública, segura porque RLS protege)
 # Ruta: Project Overview > Project API > Publishable API Key
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_aqui
-
-# JWT Secret (opcional)
-# Ruta: Project Settings > API > JWT Settings > JWT Secret
-SUPABASE_JWT_SECRET=tu_jwt_secret_aqui
+SUPABASE_KEY=tu_anon_key_aqui
 ```
 
-### 3.3 Configuración en Vercel (Deploy)
+### 3.3 Cargar Variables en Python
 
-1. Ir a [vercel.com/dashboard](https://vercel.com/dashboard)
-2. Seleccionar tu proyecto
-3. Ir a **Settings** → **Environment Variables**
-4. Agregar cada variable:
+```python
+# src/config/settings.py
 
+import os
+from dotenv import load_dotenv
+
+class Settings:
+    """Singleton para configuración desde .env"""
+    
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._load_env()
+        return cls._instance
+    
+    def _load_env(self):
+        # Cargar .env del directorio raíz
+        load_dotenv()
+        
+        self.supabase_url = os.getenv('SUPABASE_URL')
+        self.supabase_key = os.getenv('SUPABASE_KEY')
+        
+        # Validar que existen
+        if not self.supabase_url or not self.supabase_key:
+            raise ValueError(
+                "Faltan variables de entorno. "
+                "Copia .env.example a .env y completa los valores."
+            )
 ```
-┌───────────────────────────────────────────────────┐
-│  Vercel > Settings > Environment Variables        │
-├───────────────────────────────────────────────────┤
-│                                                   │
-│  ┌────────────────────────────────────────────┐   │
-│  │ Name: NEXT_PUBLIC_SUPABASE_URL             │   │
-│  │ Value: https://xxxx.supabase.co            │   │
-│  │ Environment: ☑ Production ☑ Preview ☑ Dev │   │
-│  └────────────────────────────────────────────┘   │
-│                                                   │
-│  ┌────────────────────────────────────────────┐   │
-│  │ Name: NEXT_PUBLIC_SUPABASE_ANON_KEY        │   │
-│  │ Value: eyJhbGciOiJIUzI1...                 │   │
-│  │ Environment: ☑ Production ☑ Preview ☑ Dev │   │
-│  └────────────────────────────────────────────┘   │
-│                                                   │
-│  [Save]                                           │
-│                                                   │
-└───────────────────────────────────────────────────┘
-```
-
-**Importante:** Después de agregar variables, hacer **Redeploy** para que tomen efecto.
 
 ---
 
-## 4. Actualizar .gitignore
+## 4. Instalar Dependencias Python
+
+### 4.1 Archivo `requirements.txt`
+
+```txt
+# Cliente Supabase oficial para Python
+supabase>=2.0.0
+
+# Carga de variables de entorno desde .env
+python-dotenv>=1.0.0
+```
+
+### 4.2 Instalar
+
+```bash
+# Crear entorno virtual (recomendado)
+python -m venv venv
+
+# Activar entorno virtual
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+---
+
+## 5. Actualizar .gitignore
 
 El archivo `.gitignore` debe incluir:
 
@@ -230,18 +215,28 @@ El archivo `.gitignore` debe incluir:
 # Variables de entorno (CRÍTICO)
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env*.local
 
 # NO ignorar .env.example (es la plantilla)
 !.env.example
+
+# Entorno virtual Python
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
 ```
 
 ---
 
-## 5. Ejecutar el Script SQL
+## 6. Ejecutar el Script SQL
 
 ### Paso 1: Abrir SQL Editor
 
@@ -283,7 +278,7 @@ El archivo `.gitignore` debe incluir:
 
 ---
 
-## 6. Verificar RLS (Row Level Security)
+## 7. Verificar RLS (Row Level Security)
 
 ### Verificar que RLS está activo
 
@@ -311,18 +306,49 @@ Si devuelve 0 filas aunque haya datos, **RLS está funcionando correctamente**.
 
 ---
 
-## 7. Resumen de Variables
+## 8. Resumen de Variables
 
-| Variable | Tipo | Dónde obtener | Uso |
-|----------|------|---------------|-----|
-| `NEXT_PUBLIC_SUPABASE_URL` | Pública | Project Overview > Project API | Cliente JS |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Pública | Project Overview > Project API | Cliente JS |
-| `SUPABASE_JWT_SECRET` | Secreta | Settings > API > JWT | Validación servidor |
-| `SUPABASE_SERVICE_ROLE_KEY` | Secreta | Settings > API > Project API keys | Admin bypass RLS |
+| Variable | Tipo | Dónde obtener | Uso en Python |
+|----------|------|---------------|---------------|
+| `SUPABASE_URL` | Pública | Project Overview > Project API | `Settings().supabase_url` |
+| `SUPABASE_KEY` | Pública | Project Overview > Project API | `Settings().supabase_key` |
 
 ---
 
-## 8. Troubleshooting
+## 9. Probar Conexión desde Python
+
+```python
+# test_conexion.py
+
+from supabase import create_client
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+url = os.getenv('SUPABASE_URL')
+key = os.getenv('SUPABASE_KEY')
+
+if not url or not key:
+    print("❌ Error: Falta configurar .env")
+    exit(1)
+
+client = create_client(url, key)
+print(f"✅ Conectado a Supabase: {url}")
+
+# Probar query (debería devolver lista vacía si no hay datos)
+response = client.table('notas').select('*').limit(1).execute()
+print(f"✅ Query exitosa. Datos: {response.data}")
+```
+
+Ejecutar:
+```bash
+python test_conexion.py
+```
+
+---
+
+## 10. Troubleshooting
 
 ### Error: "relation notas does not exist"
 - Ejecutar el script `database/init.sql` en SQL Editor
@@ -331,14 +357,13 @@ Si devuelve 0 filas aunque haya datos, **RLS está funcionando correctamente**.
 - Verificar que el `user_id` enviado coincide con `auth.uid()`
 - Verificar que el usuario está autenticado
 
-### Error: "JWT expired"
-- El token de sesión expiró
-- El cliente debe hacer refresh o re-login
+### Error: "Invalid API key"
+- Verificar que copiaste la key correctamente
+- Verificar que el archivo se llama `.env` (no `.env.example`)
 
-### Las variables de entorno no funcionan
-- Verificar que el archivo se llama `.env.local` (no `.env`)
-- Reiniciar el servidor de desarrollo (`npm run dev`)
-- En Vercel: hacer Redeploy después de cambiar variables
+### ModuleNotFoundError: No module named 'supabase'
+- Ejecutar `pip install -r requirements.txt`
+- Verificar que el entorno virtual está activado
 
 ---
 

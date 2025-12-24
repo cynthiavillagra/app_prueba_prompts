@@ -1,54 +1,43 @@
 # ============================================
-# DEPENDENCIAS
-# ============================================
-node_modules/
-.pnp/
-.pnpm/
-
-# ============================================
-# BUILD OUTPUTS
-# ============================================
-.next/
-out/
-build/
-dist/
-
-# ============================================
 # VARIABLES DE ENTORNO (CRÍTICO - NUNCA SUBIR)
 # ============================================
-# Todos los archivos que contengan credenciales reales
 .env
 .env.local
 .env.development
-.env.development.local
-.env.test
-.env.test.local
 .env.production
-.env.production.local
-.env*.local
 
-# NO ignorar .env.example (es la plantilla sin secretos)
+# NO ignorar .env.example (es la plantilla)
 !.env.example
 
 # ============================================
-# LOGS
+# PYTHON
 # ============================================
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-*.log
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+
+# Cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+
+# Distribución / Packaging
+dist/
+build/
+*.egg-info/
+*.egg
 
 # ============================================
-# SISTEMA OPERATIVO
+# TESTING
 # ============================================
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
 
 # ============================================
 # IDE / EDITORES
@@ -61,25 +50,27 @@ desktop.ini
 *.sublime-project
 
 # ============================================
-# TESTING
+# SISTEMA OPERATIVO
 # ============================================
-coverage/
-.nyc_output/
+.DS_Store
+.DS_Store?
+Thumbs.db
+desktop.ini
 
 # ============================================
-# VERCEL
+# LOGS
 # ============================================
-.vercel
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
 
 # ============================================
-# TYPESCRIPT
+# JUPYTER NOTEBOOKS
 # ============================================
-*.tsbuildinfo
-next-env.d.ts
+.ipynb_checkpoints/
 
 # ============================================
 # MISCELÁNEOS
 # ============================================
 *.pid
 *.seed
-*.pid.lock

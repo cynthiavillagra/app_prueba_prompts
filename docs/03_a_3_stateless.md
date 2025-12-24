@@ -1,62 +1,63 @@
-# 🏗️ Fase 3-A (Parte 3): Estrategia Stateless
+# 🏗️ Fase 3-A (Parte 3): Manejo de Estado y Sesión
 
 > **Proyecto:** CRUD Didáctico con Supabase  
 > **Fecha:** 2025-12-23  
-> **Referencia:** Continuación de `03_a_2_patrones.md`
+> **Referencia:** Continuación de `03_a_2_patrones.md`  
+> **Stack:** Python POO (sin frameworks)
 
 ---
 
-## 1. El Problema: Memoria Volátil en Serverless
+## 1. Contexto: Aplicación de Escritorio/CLI
 
-```
-SERVERLESS (Vercel):
+A diferencia de una aplicación web serverless, nuestra aplicación Python CLI:
+- **Mantiene estado en memoria** durante la sesión
+- **No tiene la restricción de memoria volátil** de Vercel/serverless
+- **La sesión persiste** mientras el programa esté en ejecución
 
-Request 1 ──► [Función Instancia A] ──► Respuesta
-                     │ muere
-                     ▼
-              (memoria borrada)
-
-Request 2 ──► [Función Instancia B] ──► Respuesta (¡DIFERENTE!)
-
-PROBLEMA: Lo guardado en RAM en Request 1 NO existe en Request 2.
-```
+Sin embargo, seguimos buenas prácticas de manejo de estado.
 
 ---
 
-## 2. Reglas Stateless (LEY ABSOLUTA)
+## 2. Reglas de Manejo de Estado
 
-### 🚫 TERMINANTEMENTE PROHIBIDO
+### ✅ PERMITIDO
 
-```javascript
-// ❌ Variable global mutable
-let sessions = {}
-let currentUser = null
-let cache = new Map()
+```python
+# ✅ Estado de sesión en objeto (encapsulado)
+class SessionManager:
+    def __init__(self):
+        self.current_user = None
+        self.access_token = None
+    
+    def set_user(self, user):
+        self.current_user = user
+    
+    def is_authenticated(self):
+        return self.current_user is not None
 
-// ❌ Almacenar estado en módulo
-const store = { user: null, notas: [] }
+# ✅ Singleton para configuración
+class Settings:
+    _instance = None
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
-// ❌ Caché en memoria del servidor
-const notasCache = []
-function getNotas() {
-  if (notasCache.length) return notasCache  // ❌ No persistirá
-}
+# ✅ Estado en base de datos (Supabase)
+# Los datos persisten entre ejecuciones del programa
 ```
 
-### ✅ PERMITIDO Y OBLIGATORIO
+### ⚠️ EVITAR (Anti-patrones)
 
-```javascript
-// ✅ Estado en cliente (React state, Context)
-const [user, setUser] = useState(null)
+```python
+# ⚠️ Variables globales sueltas (difícil de testear)
+current_user = None  # Mejor usar clase SessionManager
 
-// ✅ Estado en cookies (JWT)
-cookies().set('session', jwt, { httpOnly: true })
+# ⚠️ Credenciales hardcodeadas
+SUPABASE_KEY = "eyJhbG..."  # ❌ NUNCA
 
-// ✅ Estado en base de datos (Supabase)
-await supabase.from('notas').insert({ ... })
-
-// ✅ Estado en localStorage (solo cliente)
-localStorage.setItem('theme', 'dark')
+# ⚠️ Estado compartido sin control
+datos_cache = []  # Sin encapsulación
 ```
 
 ---
@@ -65,112 +66,203 @@ localStorage.setItem('theme', 'dark')
 
 | Tipo de Estado | Dónde Almacenar | Cómo |
 |----------------|-----------------|------|
-| Sesión de usuario | Cookie HttpOnly | Supabase Auth automático |
+| Usuario actual | `SessionManager` | Objeto en memoria |
+| Access token | `SessionManager` | Renovar si expira |
 | Datos de notas | PostgreSQL | Supabase Database |
-| Estado de UI (loading) | React State | useState, useContext |
-| Preferencias (tema) | localStorage | Solo en cliente |
+| Configuración | `Settings` | Singleton + .env |
 
 ---
 
-## 4. Flujo de Autenticación Stateless
+## 4. Flujo de Autenticación
 
 ```
-1. LOGIN
-   Usuario ──► POST (email, password)
-          ──► Supabase Auth valida
-          ◄── Devuelve JWT
-          ──► Se guarda en cookie HttpOnly
+1. REGISTRO
+   Usuario ──► Ingresa email/password
+          ──► AuthService.register()
+          ──► Supabase Auth crea usuario
+          ◄── Devuelve User object
+          ──► SessionManager guarda usuario
 
-2. REQUEST AUTENTICADO
-   Usuario ──► GET /notas
-          ──► Cookie JWT viaja automáticamente
-          ──► Middleware valida JWT
-          ──► RLS filtra por auth.uid()
+2. LOGIN
+   Usuario ──► Ingresa email/password
+          ──► AuthService.login()
+          ──► Supabase Auth valida
+          ◄── Devuelve User + access_token
+          ──► SessionManager guarda sesión
+
+3. OPERACIÓN AUTENTICADA
+   Usuario ──► Solicita listar notas
+          ──► Verificar SessionManager.is_authenticated()
+          ──► NotasService.listar(user_id)
+          ──► Supabase aplica RLS
           ◄── Solo notas del usuario
 
-3. LOGOUT
-   Usuario ──► POST /logout
-          ──► Elimina cookies
-          ──► Invalida refresh_token
+4. LOGOUT
+   Usuario ──► Solicita cerrar sesión
+          ──► AuthService.logout()
+          ──► SessionManager.clear()
+          ◄── Vuelve al menú de login
 ```
 
 ---
 
-## 5. Watchdog de Inactividad (15 minutos)
+## 5. Implementación de SessionManager
 
-### Configuración Supabase
-- access_token expira en 15 minutos
-- refresh_token solo si hay actividad
+```python
+# src/services/session_manager.py
 
-### Implementación Cliente
+class SessionManager:
+    """
+    Gestiona el estado de la sesión del usuario.
+    
+    POR QUÉ una clase: Encapsula el estado, facilita testing,
+    evita variables globales sueltas.
+    """
+    
+    _instance = None  # Singleton
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialize()
+        return cls._instance
+    
+    def _initialize(self):
+        self.current_user = None
+        self.access_token = None
+        self.refresh_token = None
+    
+    def set_session(self, user: dict, access_token: str, refresh_token: str = None):
+        """Establece la sesión después de login exitoso"""
+        self.current_user = user
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+    
+    def clear(self):
+        """Limpia la sesión (logout)"""
+        self.current_user = None
+        self.access_token = None
+        self.refresh_token = None
+    
+    def is_authenticated(self) -> bool:
+        """Verifica si hay usuario autenticado"""
+        return self.current_user is not None
+    
+    def get_user_id(self) -> str:
+        """Obtiene el ID del usuario actual"""
+        if self.current_user:
+            return self.current_user.get('id')
+        return None
+    
+    def require_auth(self):
+        """Lanza excepción si no está autenticado"""
+        if not self.is_authenticated():
+            raise PermissionError("Debe iniciar sesión primero")
 
-```javascript
-// Detectar inactividad
-let lastActivity = Date.now()
 
-// Eventos que resetean timer
-['click', 'keydown', 'scroll'].forEach(event => {
-  document.addEventListener(event, () => {
-    lastActivity = Date.now()
-  })
-})
-
-// Verificar cada minuto
-setInterval(() => {
-  const inactiveMinutes = (Date.now() - lastActivity) / 60000
-  if (inactiveMinutes >= 15) {
-    supabase.auth.signOut()
-    redirect('/login?reason=inactivity')
-  }
-}, 60000)
+# Uso en el menú:
+if __name__ == "__main__":
+    session = SessionManager()
+    
+    # Después de login exitoso
+    session.set_session(user_data, token)
+    
+    # Verificar antes de operaciones
+    if session.is_authenticated():
+        notas = notas_service.listar(session.get_user_id())
 ```
 
 ---
 
-## 6. Estrategia de Integración APIs
+## 6. Manejo de Token Expirado
 
-### APIs en el Proyecto
+```python
+# En AuthService o decorador
 
-| API | Tipo | Uso |
-|-----|------|-----|
-| Supabase Auth | BaaS | Autenticación JWT |
-| Supabase Database | BaaS | PostgreSQL + RLS |
-
-### Principio de Aislamiento
-
-```javascript
-// ❌ PROHIBIDO: Llamar Supabase desde componentes
-function MiComponente() {
-  const { data } = await supabase.from('notas').select('*')
-}
-
-// ✅ CORRECTO: Usar servicios como intermediario
-function MiComponente() {
-  const { notas } = useNotas()  // Hook usa servicio internamente
-}
+def verificar_sesion(self):
+    """
+    Verifica si la sesión sigue válida.
+    Supabase maneja expiración automáticamente,
+    pero podemos agregar verificación explícita.
+    """
+    session = SessionManager()
+    
+    if not session.is_authenticated():
+        return False
+    
+    try:
+        # Intentar obtener usuario actual de Supabase
+        user = self.client.auth.get_user(session.access_token)
+        return user is not None
+    except Exception:
+        # Token expirado o inválido
+        session.clear()
+        return False
 ```
 
 ---
 
-## 7. Resumen de Decisiones Arquitectónicas
+## 7. Carga Segura de Credenciales
+
+```python
+# src/config/settings.py
+
+import os
+from dotenv import load_dotenv
+
+class Settings:
+    """
+    Singleton para configuración.
+    Carga variables de .env de forma segura.
+    """
+    
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._load_env()
+        return cls._instance
+    
+    def _load_env(self):
+        # Cargar .env del directorio raíz
+        load_dotenv()
+        
+        # POR QUÉ os.getenv: NUNCA hardcodear credenciales
+        self.supabase_url = os.getenv('SUPABASE_URL')
+        self.supabase_key = os.getenv('SUPABASE_KEY')
+        
+        # Validar que existen
+        if not self.supabase_url or not self.supabase_key:
+            raise ValueError(
+                "Faltan variables de entorno. "
+                "Copia .env.example a .env y completa los valores."
+            )
+
+
+# Uso:
+if __name__ == "__main__":
+    settings = Settings()
+    print(f"URL: {settings.supabase_url}")
+```
+
+---
+
+## 8. Resumen de Decisiones
 
 | ID | Decisión | Patrón | Ubicación |
 |----|----------|--------|-----------|
-| ADR-06 | Cliente único | Singleton | `lib/supabase.js` |
-| ADR-07 | Clientes por contexto | Factory | `lib/supabase.js` |
-| ADR-08 | Servicios desacoplados | Adapter | `lib/services/*.js` |
-| ADR-09 | Auth extensible | Strategy | `context/AuthContext.js` |
-| ADR-10 | Hooks como facade | Facade | `hooks/*.js` |
-| ADR-11 | Estado reactivo | Observer | `onAuthStateChange` |
-| ADR-12 | Cero variables globales | Stateless | Todo el proyecto |
-| ADR-13 | JWT en cookies | Stateless | Supabase Auth |
-| ADR-14 | Watchdog 15 min | Seguridad | Componente raíz |
+| ADR-01 | Sesión en objeto | Singleton | `SessionManager` |
+| ADR-02 | Config desde .env | Singleton | `Settings` |
+| ADR-03 | Verificar auth antes de ops | Guard Clause | Services |
+| ADR-04 | Cero hardcode de credenciales | Env Vars | `.env` |
+| ADR-05 | Estado en Supabase | Database | PostgreSQL |
 
 ---
 
-## 8. Próximos Pasos
+## 9. Próximos Pasos
 
-1. ✅ **Fase 3-A Completada:** Arquitectura y Patrones
+1. ✅ **Fase 3-A Completada:** Arquitectura, Patrones, Estado
 2. 🔜 **Fase 3-B Pendiente:** Modelado de Datos
 
 ---

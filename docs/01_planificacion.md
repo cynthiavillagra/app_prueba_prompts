@@ -11,18 +11,18 @@
 
 ### 1.1 Definición del Proyecto
 
-Este proyecto es una **aplicación web CRUD (Create, Read, Update, Delete)** de propósito didáctico, diseñada para enseñar la integración entre un frontend moderno (Next.js), una base de datos en la nube (Supabase PostgreSQL) y un servicio de hosting serverless (Vercel).
+Este proyecto es una **aplicación CRUD (Create, Read, Update, Delete)** de propósito didáctico, diseñada para enseñar **Programación Orientada a Objetos (POO)** en Python, integración con una base de datos en la nube (Supabase PostgreSQL) y buenas prácticas de desarrollo.
 
-La aplicación permite a usuarios autenticados gestionar una lista personal de "Notas", implementando buenas prácticas de seguridad como Row Level Security (RLS) y arquitectura 100% stateless.
+La aplicación permite a usuarios autenticados gestionar una lista personal de "Notas", implementando buenas prácticas de seguridad como Row Level Security (RLS), principios SOLID y patrones de diseño.
 
 ### 1.2 Objetivo General
 
 Desarrollar una aplicación web funcional que sirva como **material educativo de referencia** para entender:
 
-1. **Integración Frontend-Backend:** Cómo conectar Next.js con Supabase.
-2. **Autenticación Segura:** Implementación de login/registro con JWT.
-3. **Seguridad de Datos:** Row Level Security para aislamiento multi-tenant.
-4. **Despliegue Serverless:** Deploy en Vercel con variables de entorno.
+1. **Programación Orientada a Objetos:** Clases, herencia, encapsulamiento, polimorfismo.
+2. **Patrones de Diseño:** Singleton, Factory, Adapter, Strategy aplicados en Python.
+3. **Integración con BaaS:** Conexión Python con Supabase (Auth + PostgreSQL).
+4. **Seguridad de Datos:** Row Level Security y manejo seguro de credenciales.
 5. **Metodología SDLC:** Desarrollo por fases con documentación completa.
 
 ### 1.3 Objetivos Específicos
@@ -32,7 +32,7 @@ Desarrollar una aplicación web funcional que sirva como **material educativo de
 | O1 | Implementar autenticación email/password | Login/Registro funcionando en < 3 segundos |
 | O2 | Desarrollar CRUD completo de Notas | 4 operaciones (CRUD) funcionales |
 | O3 | Garantizar aislamiento de datos por usuario | RLS activo, tests de seguridad pasando |
-| O4 | Desplegar en Vercel | URL pública accesible |
+| O4 | Ejecutar localmente sin dependencias complejas | `python main.py` funciona |
 | O5 | Documentar todo el proceso | Manual replicable en docs/ |
 
 ### 1.4 Alcance
@@ -43,9 +43,9 @@ Desarrollar una aplicación web funcional que sirva como **material educativo de
 |--------|-----------------|
 | **Autenticación** | Registro, Login, Logout, Protección de rutas |
 | **Notas** | Crear, Listar, Editar, Eliminar |
-| **UI** | Diseño responsive, estados de carga, mensajes de error |
-| **Seguridad** | RLS, variables de entorno, JWT |
-| **Deploy** | Vercel con dominio automático |
+| **UI** | CLI interactivo o web simple (HTML/CSS/JS puro) |
+| **Seguridad** | RLS, variables de entorno (.env), JWT |
+| **Deploy** | Local (Python directo) |
 | **Documentación** | Manual completo por fases |
 
 #### ❌ Fuera del Alcance (Out of Scope)
@@ -63,27 +63,28 @@ Desarrollar una aplicación web funcional que sirva como **material educativo de
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    STACK TECNOLÓGICO                        │
+│              STACK TECNOLÓGICO (PYTHON POO)                 │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  FRONTEND                                                   │
-│  ├── Next.js 14 (App Router)                               │
-│  ├── React 18 (Server + Client Components)                 │
-│  └── CSS Vanilla (sin frameworks)                          │
+│  BACKEND (Python Puro - Sin Frameworks)                    │
+│  ├── Python 3.11+                                          │
+│  ├── supabase-py (Cliente Supabase oficial)                │
+│  ├── python-dotenv (Variables de entorno)                  │
+│  └── Principios POO (Clases, Herencia, Polimorfismo)       │
 │                                                             │
-│  BACKEND / BaaS                                             │
+│  FRONTEND (Opcional)                                        │
+│  ├── CLI interactivo (input/print)                         │
+│  └── O: HTML/CSS/JS puro servido localmente                │
+│                                                             │
+│  BASE DE DATOS                                              │
 │  ├── Supabase PostgreSQL (Base de datos)                   │
 │  ├── Supabase Auth (Autenticación JWT)                     │
-│  └── Supabase Client SDK (@supabase/supabase-js)           │
-│                                                             │
-│  HOSTING                                                    │
-│  ├── Vercel (Serverless Functions)                         │
-│  └── Vercel Edge Network (CDN global)                      │
+│  └── Row Level Security (RLS)                              │
 │                                                             │
 │  HERRAMIENTAS                                               │
 │  ├── Git + GitHub (Control de versiones)                   │
-│  ├── npm (Gestión de dependencias)                         │
-│  └── VS Code (IDE recomendado)                             │
+│  ├── pip + requirements.txt (Dependencias)                 │
+│  └── VS Code / PyCharm (IDE recomendado)                   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -92,11 +93,11 @@ Desarrollar una aplicación web funcional que sirva como **material educativo de
 
 | Tecnología | ¿Por qué SÍ? | ¿Por qué NO alternativas? |
 |------------|--------------|---------------------------|
-| **Next.js 14** | Zero-config con Vercel, SSR/SSG, App Router moderno | Create React App está deprecado, Vite requiere más config |
-| **Supabase** | PostgreSQL real, Auth incluido, RLS nativo, free tier generoso | Firebase tiene modelo de datos NoSQL, menos didáctico |
-| **Vercel** | Deploy automático desde Git, HTTPS gratis, variables de entorno fáciles | Netlify no tiene integración nativa con Next.js |
-| **CSS Vanilla** | Control total, sin dependencias, más didáctico | Tailwind agrega curva de aprendizaje innecesaria |
-| **JavaScript** | Menor barrera de entrada que TypeScript para principiantes | TypeScript se puede agregar después |
+| **Python 3.11+** | Sintaxis clara, ideal para aprender POO, tipado opcional | Java es más verboso, C++ requiere manejo de memoria |
+| **Sin frameworks** | Control total, entender cada capa, más didáctico | Flask/Django ocultan la lógica, menos educativo |
+| **supabase-py** | Cliente oficial, API idéntica a JS, bien documentado | psycopg2 requiere SQL manual, más complejo |
+| **python-dotenv** | Estándar para .env en Python, simple | os.environ directo es menos seguro |
+| **CLI** | Sin dependencias de frontend, enfoque en backend POO | Web agrega complejidad innecesaria para MVP |
 
 ---
 
@@ -106,43 +107,34 @@ Desarrollar una aplicación web funcional que sirva como **material educativo de
 
 | ID | Riesgo | Probabilidad | Impacto | Nivel | Mitigación |
 |----|--------|--------------|---------|-------|------------|
-| R1 | **Memoria Volátil (Serverless)** - Pérdida de estado entre requests | Alta | Crítico | 🔴 Alto | Arquitectura 100% stateless, JWT en cookies, cero variables globales |
-| R2 | **Exposición de Credenciales** - Claves hardcodeadas en código | Media | Crítico | 🔴 Alto | `.env.local` + `.gitignore`, validación pre-commit |
-| R3 | **Fuga de Datos entre Usuarios** - Usuario A ve datos de Usuario B | Baja | Crítico | 🟡 Medio | RLS obligatorio desde día 1, tests de aislamiento |
-| R4 | **Token JWT Expirado** - Sesión inválida sin aviso | Media | Medio | 🟡 Medio | Refresh automático de Supabase, UI de error clara |
-| R5 | **Límites Free Tier** - Superación de cuotas gratuitas | Baja | Bajo | 🟢 Bajo | Monitoreo de uso, alertas de Supabase |
-| R6 | **Dependencias Desactualizadas** - Vulnerabilidades de seguridad | Media | Medio | 🟡 Medio | `npm audit` periódico, Dependabot en GitHub |
-| R7 | **Pérdida de Código Local** - Sin backup remoto | Media | Alto | 🟡 Medio | Push a GitHub después de cada fase |
+| R1 | **Exposición de Credenciales** - Claves hardcodeadas en código | Media | Crítico | 🔴 Alto | `.env` + `.gitignore`, nunca en código |
+| R2 | **Fuga de Datos entre Usuarios** - Usuario A ve datos de Usuario B | Baja | Crítico | 🟡 Medio | RLS obligatorio desde día 1, tests de aislamiento |
+| R3 | **Token JWT Expirado** - Sesión inválida sin aviso | Media | Medio | 🟡 Medio | Validación de sesión antes de cada operación |
+| R4 | **Límites Free Tier** - Superación de cuotas gratuitas | Baja | Bajo | 🟢 Bajo | Monitoreo de uso, alertas de Supabase |
+| R5 | **Dependencias Desactualizadas** - Vulnerabilidades de seguridad | Media | Medio | 🟡 Medio | `pip audit` periódico, revisar requirements.txt |
+| R6 | **Pérdida de Código Local** - Sin backup remoto | Media | Alto | 🟡 Medio | Push a GitHub después de cada fase |
+| R7 | **Complejidad de POO** - Sobreingeniería para CRUD simple | Media | Bajo | 🟢 Bajo | Mantener clases simples, KISS principle |
 
 ### 2.2 Plan de Mitigación Detallado
 
-#### R1: Memoria Volátil (Serverless)
-
-```
-PROHIBIDO en arquitectura serverless:
-❌ let session = {}  // Variable global mutable
-❌ const cache = new Map()  // Caché en memoria
-❌ app.use(session({ store: MemoryStore }))  // Sesiones en RAM
-
-PERMITIDO:
-✅ Cookies firmadas (httpOnly, secure)
-✅ JWT tokens (stateless por diseño)
-✅ Base de datos para cualquier estado persistente
-✅ localStorage/sessionStorage en cliente (para UI state)
-```
-
-#### R2: Exposición de Credenciales
+#### R1: Exposición de Credenciales
 
 ```
 Estructura de archivos:
 
-.env.local          # ← Secretos reales (NUNCA se sube)
+.env                # ← Secretos reales (NUNCA se sube)
 .env.example        # ← Plantilla sin valores (SÍ se sube)
-.gitignore          # ← Debe incluir .env*
+.gitignore          # ← Debe incluir .env
 
 Contenido de .env.example:
-NEXT_PUBLIC_SUPABASE_URL=tu_url_aqui
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_key_aqui
+SUPABASE_URL=tu_url_aqui
+SUPABASE_KEY=tu_anon_key_aqui
+
+Carga en Python:
+import os
+from dotenv import load_dotenv
+load_dotenv()
+url = os.getenv('SUPABASE_URL')  # ✅ Correcto
 ```
 
 #### R3: Fuga de Datos entre Usuarios
@@ -225,16 +217,15 @@ CREATE POLICY "isolation" ON notas
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3.3 Detalle por Sprint
-
 #### Sprint 0: Configuración Inicial
 
 | Tarea | Archivo/Comando | Criterio de Éxito |
 |-------|-----------------|-------------------|
 | Inicializar Git | `git init` | Carpeta `.git` creada |
-| Crear Next.js | `npx create-next-app@latest ./` | `npm run dev` funciona |
+| Crear estructura | Carpetas `src/`, `tests/` | Estructura visible |
+| Crear requirements.txt | `requirements.txt` | Dependencias listadas |
 | Crear .env.example | `.env.example` | Plantilla documentada |
-| Crear .gitignore | `.gitignore` | `.env.local` excluido |
+| Crear .gitignore | `.gitignore` | `.env` excluido |
 | Documentar setup | `README.md` | Instrucciones claras |
 
 #### Sprint 1: Supabase Setup

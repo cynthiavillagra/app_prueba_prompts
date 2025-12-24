@@ -1,4 +1,4 @@
-# 📊 Fase 3-B: Modelado de Datos y Clases
+# 📊 Fase 3-B: Modelado de Datos y Clases (Estático)
 
 > **Proyecto:** CRUD Didáctico con Supabase  
 > **Fecha:** 2025-12-23  
@@ -12,199 +12,165 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    DIAGRAMA ENTIDAD-RELACIÓN                            │
+│                    DIAGRAMA ENTIDAD-RELACIÓN (DER)                      │
 └─────────────────────────────────────────────────────────────────────────┘
 
     ┌───────────────────────────┐         ┌───────────────────────────┐
     │       auth.users          │         │          notas            │
-    │ (Tabla de Supabase Auth)  │         │  (Tabla del aplicativo)   │
+    │   (Supabase - Sistema)    │         │     (Aplicación)          │
     ├───────────────────────────┤         ├───────────────────────────┤
-    │ PK  id: uuid              │────┐    │ PK  id: uuid              │
-    │     email: varchar        │    │    │ FK  user_id: uuid ────────┤
-    │     encrypted_password    │    │    │     title: text           │
-    │     created_at: timestamptz    │    │     content: text         │
-    │     ...                   │    │    │     created_at: timestamptz
-    └───────────────────────────┘    │    │     updated_at: timestamptz
-                                     │    └───────────────────────────┘
-                                     │                │
-                                     │                │
-                                     └────────────────┘
-                                           1:N
-                                     Un usuario tiene
-                                     muchas notas
-
-CARDINALIDAD:
-─────────────
-• auth.users (1) ──────► notas (N)
-• Un usuario puede tener 0 o más notas
-• Una nota pertenece a exactamente 1 usuario
+    │ «PK» id         : UUID    │◄───────┐│ «PK» id         : UUID    │
+    │      email      : VARCHAR │    1:N ││ «FK» user_id    : UUID    │
+    │      password   : VARCHAR │        │├───────────────────────────┤
+    │      created_at : TIMESTAMP        ││      title      : TEXT    │
+    └───────────────────────────┘        ││      content    : TEXT    │
+                                         ││      created_at : TIMESTAMP
+                                         ││      updated_at : TIMESTAMP
+                                         │└───────────────────────────┘
+                                         │
+                                         └─── Un usuario tiene 0..N notas
+                                              Una nota pertenece a 1 usuario
 ```
 
-### 1.2 Diccionario de Datos
+### 1.2 Cardinalidad y Restricciones
 
-#### Tabla: `notas`
+| Relación | Cardinalidad | Restricción |
+|----------|--------------|-------------|
+| `auth.users` → `notas` | 1:N | `ON DELETE CASCADE` |
 
-| Campo | Tipo | Restricciones | Descripción |
-|-------|------|---------------|-------------|
-| `id` | `uuid` | PK, NOT NULL, DEFAULT gen_random_uuid() | Identificador único |
-| `user_id` | `uuid` | FK → auth.users(id), NOT NULL, ON DELETE CASCADE | Propietario de la nota |
-| `title` | `text` | NOT NULL | Título de la nota |
-| `content` | `text` | NULL permitido | Contenido/cuerpo de la nota |
-| `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | Fecha de creación |
-| `updated_at` | `timestamptz` | NOT NULL, DEFAULT now() | Última modificación |
+### 1.3 Diccionario de Datos
 
-#### Tabla: `auth.users` (Gestionada por Supabase)
+#### Entidad: `notas`
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id` | `uuid` | Identificador único del usuario |
-| `email` | `varchar` | Email del usuario |
-| `encrypted_password` | `varchar` | Contraseña hasheada |
-| `created_at` | `timestamptz` | Fecha de registro |
+| Atributo | Tipo | PK/FK | NULL | Default | Descripción |
+|----------|------|-------|------|---------|-------------|
+| `id` | UUID | PK | NO | `gen_random_uuid()` | Identificador único |
+| `user_id` | UUID | FK | NO | - | Referencia a `auth.users(id)` |
+| `title` | TEXT | - | NO | - | Título de la nota |
+| `content` | TEXT | - | SÍ | NULL | Contenido opcional |
+| `created_at` | TIMESTAMPTZ | - | NO | `now()` | Fecha de creación (UTC) |
+| `updated_at` | TIMESTAMPTZ | - | NO | `now()` | Última modificación (UTC) |
 
 ---
 
-## 2. SQL DDL (Data Definition Language)
+## 2. Diagrama de Clases (Backend POO)
 
-```sql
--- ============================================
--- SCRIPT DE CREACIÓN: Tabla notas
--- Proyecto: CRUD Didáctico con Supabase
--- Fecha: 2025-12-23
--- ============================================
+El siguiente diagrama refleja los **patrones definidos en Fase 3-A**:
+- **Singleton:** `SupabaseClient`
+- **Factory Method:** `SupabaseClientFactory`
+- **Adapter:** `AuthService`, `NotasService`
+- **Facade:** `useAuth`, `useNotas`
+- **Strategy:** `AuthStrategy` con implementaciones
+- **Observer:** `AuthContext` con suscriptores
 
--- 1. Crear tabla notas
-CREATE TABLE IF NOT EXISTS public.notas (
-    -- Clave primaria con UUID autogenerado
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
-    -- Relación con usuario (CASCADE: si se borra usuario, se borran sus notas)
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    
-    -- Campos de contenido
-    title TEXT NOT NULL,
-    content TEXT,
-    
-    -- Timestamps con zona horaria UTC
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- 2. Índice para optimizar búsquedas por usuario
-CREATE INDEX IF NOT EXISTS idx_notas_user_id ON public.notas(user_id);
-
--- 3. Índice para ordenar por fecha
-CREATE INDEX IF NOT EXISTS idx_notas_created_at ON public.notas(created_at DESC);
-
--- 4. Habilitar Row Level Security (CRÍTICO)
-ALTER TABLE public.notas ENABLE ROW LEVEL SECURITY;
-
--- 5. Política: Usuarios solo ven sus propias notas
-CREATE POLICY "Users can view own notas" ON public.notas
-    FOR SELECT
-    USING (auth.uid() = user_id);
-
--- 6. Política: Usuarios solo insertan con su user_id
-CREATE POLICY "Users can insert own notas" ON public.notas
-    FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-
--- 7. Política: Usuarios solo actualizan sus notas
-CREATE POLICY "Users can update own notas" ON public.notas
-    FOR UPDATE
-    USING (auth.uid() = user_id)
-    WITH CHECK (auth.uid() = user_id);
-
--- 8. Política: Usuarios solo eliminan sus notas
-CREATE POLICY "Users can delete own notas" ON public.notas
-    FOR DELETE
-    USING (auth.uid() = user_id);
-
--- 9. Función para auto-actualizar updated_at
-CREATE OR REPLACE FUNCTION public.handle_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- 10. Trigger para updated_at automático
-CREATE TRIGGER set_updated_at
-    BEFORE UPDATE ON public.notas
-    FOR EACH ROW
-    EXECUTE FUNCTION public.handle_updated_at();
-```
-
----
-
-## 3. Diagrama de Clases (Mermaid)
+### 2.1 Diagrama Mermaid
 
 ```mermaid
 classDiagram
-    %% ========================================
-    %% CAPA DE INFRAESTRUCTURA (Singleton + Factory)
-    %% ========================================
+    direction TB
+    
+    %% ════════════════════════════════════════════
+    %% PATRÓN SINGLETON - Cliente único
+    %% ════════════════════════════════════════════
     
     class SupabaseClient {
         <<Singleton>>
+        -static instance: SupabaseClient
         -url: string
         -anonKey: string
         +auth: AuthClient
-        +from(table): QueryBuilder
+        +from(table: string): QueryBuilder
+        +static getInstance(): SupabaseClient
     }
+    
+    %% ════════════════════════════════════════════
+    %% PATRÓN FACTORY METHOD - Crear clientes según contexto
+    %% ════════════════════════════════════════════
     
     class SupabaseClientFactory {
         <<Factory>>
         +createBrowserClient(): SupabaseClient
-        +createServerClient(cookies): SupabaseClient
+        +createServerClient(cookies: CookieStore): SupabaseClient
     }
     
-    %% ========================================
-    %% CAPA DE SERVICIOS (Adapter)
-    %% ========================================
+    %% ════════════════════════════════════════════
+    %% PATRÓN STRATEGY - Estrategias de autenticación
+    %% ════════════════════════════════════════════
+    
+    class IAuthStrategy {
+        <<Interface>>
+        +signIn(email: string, password: string): Promise~Session~
+        +signUp(email: string, password: string): Promise~User~
+        +signOut(): Promise~void~
+    }
+    
+    class EmailPasswordStrategy {
+        <<Strategy>>
+        -client: SupabaseClient
+        +signIn(email: string, password: string): Promise~Session~
+        +signUp(email: string, password: string): Promise~User~
+        +signOut(): Promise~void~
+    }
+    
+    class GoogleOAuthStrategy {
+        <<Strategy - Futuro v2>>
+        -client: SupabaseClient
+        +signIn(): Promise~Session~
+        +signUp(): Promise~User~
+        +signOut(): Promise~void~
+    }
+    
+    %% ════════════════════════════════════════════
+    %% PATRÓN ADAPTER - Servicios que encapsulan Supabase
+    %% ════════════════════════════════════════════
     
     class AuthService {
         <<Adapter>>
         -client: SupabaseClient
-        +signUp(email, password): Promise~User~
-        +signIn(email, password): Promise~Session~
-        +signOut(): Promise~void~
+        -strategy: IAuthStrategy
+        +login(email: string, password: string): Promise~Session~
+        +register(email: string, password: string): Promise~User~
+        +logout(): Promise~void~
         +getUser(): Promise~User~
-        +onAuthStateChange(callback): Subscription
+        +onAuthStateChange(callback: Function): Subscription
     }
     
     class NotasService {
         <<Adapter>>
         -client: SupabaseClient
         +getAll(): Promise~Nota[]~
-        +getById(id): Promise~Nota~
-        +create(nota): Promise~Nota~
-        +update(id, data): Promise~Nota~
-        +delete(id): Promise~void~
+        +getById(id: string): Promise~Nota~
+        +create(data: NotaInput): Promise~Nota~
+        +update(id: string, data: NotaInput): Promise~Nota~
+        +delete(id: string): Promise~void~
     }
     
-    %% ========================================
-    %% CAPA DE APLICACIÓN (Facade + Strategy)
-    %% ========================================
+    %% ════════════════════════════════════════════
+    %% PATRÓN OBSERVER - Estado reactivo
+    %% ════════════════════════════════════════════
     
     class AuthContext {
-        <<Context/Observer>>
+        <<Context - Observer Subject>>
         -user: User | null
         -loading: boolean
-        +login(email, password): void
-        +logout(): void
-        +register(email, password): void
+        -subscribers: Component[]
+        +notifyAll(): void
+        +subscribe(component: Component): void
+        +unsubscribe(component: Component): void
     }
+    
+    %% ════════════════════════════════════════════
+    %% PATRÓN FACADE - Hooks como interfaz simple
+    %% ════════════════════════════════════════════
     
     class useAuth {
         <<Facade Hook>>
         +user: User | null
         +loading: boolean
         +error: string | null
-        +login(email, password): void
+        +login(email: string, password: string): void
         +logout(): void
-        +register(email, password): void
+        +register(email: string, password: string): void
     }
     
     class useNotas {
@@ -212,15 +178,15 @@ classDiagram
         +notas: Nota[]
         +loading: boolean
         +error: string | null
-        +create(data): void
-        +update(id, data): void
-        +remove(id): void
-        +refresh(): void
+        +create(data: NotaInput): Promise~void~
+        +update(id: string, data: NotaInput): Promise~void~
+        +remove(id: string): Promise~void~
+        +refresh(): Promise~void~
     }
     
-    %% ========================================
+    %% ════════════════════════════════════════════
     %% ENTIDADES DE DOMINIO
-    %% ========================================
+    %% ════════════════════════════════════════════
     
     class User {
         <<Entity>>
@@ -234,116 +200,128 @@ classDiagram
         +id: string
         +userId: string
         +title: string
-        +content: string
+        +content: string | null
         +createdAt: Date
         +updatedAt: Date
     }
     
     class Session {
-        <<ValueObject>>
+        <<Value Object>>
         +accessToken: string
         +refreshToken: string
         +expiresAt: number
         +user: User
     }
     
-    %% ========================================
-    %% RELACIONES
-    %% ========================================
+    class NotaInput {
+        <<DTO>>
+        +title: string
+        +content: string | null
+    }
     
+    %% ════════════════════════════════════════════
+    %% RELACIONES
+    %% ════════════════════════════════════════════
+    
+    %% Factory crea Singleton
     SupabaseClientFactory ..> SupabaseClient : creates
+    
+    %% Strategy implementa interfaz
+    IAuthStrategy <|.. EmailPasswordStrategy : implements
+    IAuthStrategy <|.. GoogleOAuthStrategy : implements
+    
+    %% Adapters usan Singleton
     AuthService --> SupabaseClient : uses
+    AuthService --> IAuthStrategy : uses strategy
     NotasService --> SupabaseClient : uses
     
+    %% Observer pattern
     AuthContext --> AuthService : uses
+    AuthContext --> User : holds state
+    
+    %% Facades consumen servicios
     useAuth --> AuthContext : consumes
     useNotas --> NotasService : uses
     
+    %% Retornos de servicios
     AuthService ..> User : returns
     AuthService ..> Session : returns
     NotasService ..> Nota : returns
     
-    User "1" --> "*" Nota : owns
+    %% Relación de dominio
+    User "1" --> "0..*" Nota : owns
+```
+
+### 2.2 Mapeo Patrón → Clase
+
+| Patrón (Fase 3-A) | Clase/Componente | Responsabilidad |
+|-------------------|------------------|-----------------|
+| **Singleton** | `SupabaseClient` | Única instancia del cliente |
+| **Factory Method** | `SupabaseClientFactory` | Crear cliente según contexto (browser/server) |
+| **Strategy** | `IAuthStrategy`, `EmailPasswordStrategy` | Intercambiar estrategias de auth |
+| **Adapter** | `AuthService`, `NotasService` | Encapsular SDK de Supabase |
+| **Facade** | `useAuth`, `useNotas` | Interfaz simple para componentes UI |
+| **Observer** | `AuthContext` | Notificar cambios de sesión a suscriptores |
+
+---
+
+## 3. Flujo de Dependencias
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    FLUJO DE DEPENDENCIAS                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  COMPONENTES UI
+  (Presentación)
+       │
+       │ consumen
+       ▼
+  ┌─────────────────────┐
+  │  HOOKS (Facade)     │  ◄── useAuth, useNotas
+  │  Interfaz simple    │
+  └──────────┬──────────┘
+             │ usan
+             ▼
+  ┌─────────────────────┐
+  │  CONTEXT (Observer) │  ◄── AuthContext
+  │  Estado reactivo    │
+  └──────────┬──────────┘
+             │ usa
+             ▼
+  ┌─────────────────────┐
+  │  SERVICES (Adapter) │  ◄── AuthService, NotasService
+  │  Encapsula Supabase │
+  └──────────┬──────────┘
+             │ usan
+             ▼
+  ┌─────────────────────┐
+  │  STRATEGY           │  ◄── EmailPasswordStrategy
+  │  Lógica de Auth     │
+  └──────────┬──────────┘
+             │ usa
+             ▼
+  ┌─────────────────────┐
+  │  CLIENT (Singleton) │  ◄── SupabaseClient
+  │  Instancia única    │
+  └──────────┬──────────┘
+             │ creado por
+             ▼
+  ┌─────────────────────┐
+  │  FACTORY            │  ◄── SupabaseClientFactory
+  │  Crea según contexto│
+  └─────────────────────┘
 ```
 
 ---
 
-## 4. Diagramas Adicionales
-
-### 4.1 Diagrama de Secuencia: Crear Nota
-
-```mermaid
-sequenceDiagram
-    participant U as Usuario
-    participant UI as NotaForm
-    participant H as useNotas Hook
-    participant S as NotasService
-    participant DB as Supabase DB
-    participant RLS as RLS Policy
-
-    U->>UI: Completa formulario
-    U->>UI: Click "Guardar"
-    UI->>H: create({ title, content })
-    H->>H: setLoading(true)
-    H->>S: create({ title, content, user_id })
-    S->>DB: INSERT INTO notas
-    DB->>RLS: Verificar auth.uid() = user_id
-    RLS-->>DB: ✓ Permitido
-    DB-->>S: Nota creada
-    S-->>H: { data: nota }
-    H->>H: setLoading(false)
-    H->>H: Agregar nota a lista
-    H-->>UI: Actualizar UI
-    UI-->>U: Mensaje de éxito
-```
-
-### 4.2 Flujo de Datos Completo
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        FLUJO DE DATOS                                │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  CREAR NOTA:                                                         │
-│  UI ──► useNotas.create() ──► NotasService.create() ──► Supabase    │
-│     ◄── actualiza estado ◄────── retorna nota ◄───────── INSERT     │
-│                                                                      │
-│  LISTAR NOTAS:                                                       │
-│  UI ──► useNotas (mount) ──► NotasService.getAll() ──► Supabase     │
-│     ◄── renderiza lista ◄────── retorna array ◄───────── SELECT    │
-│                                                          + RLS      │
-│                                                                      │
-│  EDITAR NOTA:                                                        │
-│  UI ──► useNotas.update() ──► NotasService.update() ──► Supabase    │
-│     ◄── actualiza estado ◄────── retorna nota ◄───────── UPDATE     │
-│                                                                      │
-│  ELIMINAR NOTA:                                                      │
-│  UI ──► useNotas.remove() ──► NotasService.delete() ──► Supabase    │
-│     ◄── remueve de lista ◄────── confirma ◄──────────── DELETE      │
-│                                                                      │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 5. Validaciones de Datos
-
-| Campo | Validación Frontend | Validación Backend (DB) |
-|-------|--------------------|-----------------------|
-| `title` | Requerido, max 200 chars | NOT NULL |
-| `content` | Opcional | NULL permitido |
-| `user_id` | Automático (auth.uid()) | FK + RLS |
-| `created_at` | No editable | DEFAULT now() |
-| `updated_at` | No editable | Trigger automático |
-
----
-
-## 6. Próximos Pasos
+## 4. Próximos Pasos
 
 1. ✅ **Fase 3-A Completada:** Arquitectura y Patrones
-2. ✅ **Fase 3-B Completada:** Modelado de Datos
-3. 🔜 **Fase 4 Pendiente:** Implementación (Código)
+2. ⏳ **Fase 3-B En Revisión:** Modelado de Datos (este documento)
+3. 🔜 **Fase 4 Pendiente:** Implementación
 
 ---
 
-> **Documento generado:** 2025-12-23
+> **Documento generado:** 2025-12-23  
+> **Pendiente:** Aprobación del modelo de datos

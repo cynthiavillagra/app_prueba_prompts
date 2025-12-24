@@ -1,0 +1,12 @@
+# ============================================
+# CRUD Didáctico con Supabase - Dependencias
+# ============================================
+# Instalar con: pip install -r requirements.txt
+
+# Cliente Supabase oficial para Python
+# https://github.com/supabase-community/supabase-py
+supabase>=2.0.0
+
+# Carga de variables de entorno desde .env
+# https://pypi.org/project/python-dotenv/
+python-dotenv>=1.0.0

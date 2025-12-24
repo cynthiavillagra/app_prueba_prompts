@@ -10,9 +10,9 @@
 
 | Aspecto | Valor |
 |---------|-------|
-| **Fase Actual** | Fase 3.5 Completada (Persistencia) |
-| **Cambio Aplicado** | Migración Next.js → Python POO |
-| **% Completado** | 50% |
+| **Fase Actual** | Fase 4-A Completada (Setup Local) |
+| **Próxima Fase** | Fase 4-B (Estructura src/) |
+| **% Completado** | 55% |
 
 ---
 

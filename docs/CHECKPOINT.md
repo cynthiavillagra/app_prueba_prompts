@@ -1,6 +1,6 @@
 # 📍 CHECKPOINT - Estado del Proyecto
 
-> **Última Actualización:** 2025-12-23T22:19:00-03:00  
+> **Última Actualización:** 2025-12-23T22:22:00-03:00  
 > **Proyecto:** CRUD Didáctico con Supabase
 
 ---
@@ -9,9 +9,9 @@
 
 | Aspecto | Valor |
 |---------|-------|
-| **Fase Actual** | Fase 3-B (Modelado de Datos) - En Revisión |
+| **Fase Actual** | Fase 3-C (API y Dinámica) - En Revisión |
 | **Próxima Fase** | Fase 4 - Implementación |
-| **% Completado** | 35% |
+| **% Completado** | 45% |
 
 ---
 
@@ -36,27 +36,35 @@ Lenguaje:     JavaScript (ES6+)
 | 3-A | `docs/03_a_1_arquitectura.md` | ✅ Completo | 2025-12-23 |
 | 3-A | `docs/03_a_2_patrones.md` | ✅ Completo | 2025-12-23 |
 | 3-A | `docs/03_a_3_stateless.md` | ✅ Completo | 2025-12-23 |
-| 3-B | `docs/03_b_modelado_datos.md` | ⏳ En revisión | 2025-12-23 |
+| 3-B | `docs/03_b_modelado_datos.md` | ✅ Completo | 2025-12-23 |
+| 3-C | `docs/03_c_api_dinamica.md` | ⏳ En revisión | 2025-12-23 |
 | - | `docs/CHECKPOINT.md` | ✅ Activo | 2025-12-23 |
 
 ---
 
-## 🔜 Siguiente Paso Sugerido
+## 🔌 Endpoints Definidos (Fase 3-C)
 
-**Aprobar Fase 3-B e iniciar Fase 4: Implementación**
+| Método | Ruta | Módulo | HU |
+|--------|------|--------|-----|
+| POST | `/auth/v1/signup` | AUTH | HU-01 |
+| POST | `/auth/v1/token` | AUTH | HU-02 |
+| POST | `/auth/v1/logout` | AUTH | HU-03 |
+| GET | `/rest/v1/notas` | NOTAS | HU-05 |
+| POST | `/rest/v1/notas` | NOTAS | HU-04 |
+| PATCH | `/rest/v1/notas?id=eq.{id}` | NOTAS | HU-06 |
+| DELETE | `/rest/v1/notas?id=eq.{id}` | NOTAS | HU-07 |
 
 ---
 
-## 📋 Patrones Reflejados en Diagrama de Clases
+## 🔒 Seguridad Definida
 
-| Patrón | Clase |
-|--------|-------|
-| Singleton | `SupabaseClient` |
-| Factory Method | `SupabaseClientFactory` |
-| Strategy | `IAuthStrategy`, `EmailPasswordStrategy` |
-| Adapter | `AuthService`, `NotasService` |
-| Facade | `useAuth`, `useNotas` |
-| Observer | `AuthContext` |
+| Aspecto | Estrategia |
+|---------|------------|
+| API Keys | Variables de entorno |
+| Sesión | JWT en cookies HttpOnly |
+| Watchdog | 15 min inactividad → logout |
+| Token expirado | Catch 401 → redirect |
+| Aislamiento | Row Level Security |
 
 ---
 
@@ -64,16 +72,17 @@ Lenguaje:     JavaScript (ES6+)
 
 | Fecha | Fase | Cambio |
 |-------|------|--------|
-| 2025-12-23 | 1 | Creación de `01_planificacion.md` |
-| 2025-12-23 | 2 | Creación de `02_analisis.md` |
-| 2025-12-23 | 3-A | Creación de arquitectura y patrones |
-| 2025-12-23 | 3-B | Creación de modelado de datos (en revisión) |
+| 2025-12-23 | 1 | Planificación |
+| 2025-12-23 | 2 | Análisis |
+| 2025-12-23 | 3-A | Arquitectura y patrones |
+| 2025-12-23 | 3-B | Modelado de datos |
+| 2025-12-23 | 3-C | API y dinámica (en revisión) |
 
 ---
 
-## ⏸️ ESTADO: Esperando Aprobación de Fase 3-B
+## ⏸️ ESTADO: Esperando Aprobación de Fase 3-C
 
-> **Próxima acción:** Usuario debe aprobar modelo de datos.
+> **Próxima acción:** Usuario debe aprobar API y seguridad.
 
 ---
 

@@ -10,9 +10,9 @@
 
 | Aspecto | Valor |
 |---------|-------|
-| **Fase Actual** | Fase 4-A Completada (Setup Local) |
-| **Próxima Fase** | Fase 4-B (Estructura src/) |
-| **% Completado** | 55% |
+| **Fase Actual** | Fase 4-B Completada (Infraestructura) |
+| **Último Archivo** | `README.md`, `LICENSE` (12/12) |
+| **% Completado** | 85% |
 
 ---
 

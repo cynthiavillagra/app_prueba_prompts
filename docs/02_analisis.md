@@ -3,7 +3,8 @@
 > **Proyecto:** CRUD Didáctico con Supabase  
 > **Versión:** 1.0.0  
 > **Fecha:** 2025-12-23  
-> **Referencia:** Continuación de `docs/01_planificacion.md`
+> **Referencia:** Continuación de `docs/01_planificacion.md`  
+> **Stack:** Python POO (sin frameworks)
 
 ---
 
@@ -29,17 +30,17 @@
 
 | ID | Requisito | Descripción | Módulo |
 |----|-----------|-------------|--------|
-| RF-10 | Validación de formularios | Los formularios deben validar campos obligatorios antes de enviar | UI |
-| RF-11 | Estados de carga | La UI debe mostrar indicadores durante operaciones asíncronas | UI |
+| RF-10 | Validación de inputs | Los inputs deben validar campos obligatorios antes de procesar | UI |
+| RF-11 | Estados de carga | La UI debe mostrar indicadores durante operaciones | UI |
 | RF-12 | Mensajes de feedback | El sistema debe mostrar mensajes de éxito o error claros | UI |
-| RF-13 | Responsive design | La interfaz debe adaptarse a móviles y desktop | UI |
+| RF-13 | Interfaz clara | La interfaz CLI debe ser intuitiva y fácil de usar | UI |
 | RF-14 | Confirmación de eliminación | Solicitar confirmación antes de eliminar una nota | UI |
 
 #### 🟢 COULD HAVE (Opcionales)
 
 | ID | Requisito | Descripción | Módulo |
 |----|-----------|-------------|--------|
-| RF-15 | Recordar sesión | La sesión debe persistir al cerrar el navegador | AUTH |
+| RF-15 | Persistir sesión | La sesión debe persistir mientras el programa esté en ejecución | AUTH |
 | RF-16 | Ordenar notas por fecha | Las notas deben mostrarse ordenadas (más recientes primero) | NOTAS |
 | RF-17 | Fecha de última edición | Mostrar cuándo fue editada cada nota | NOTAS |
 
@@ -64,24 +65,24 @@
 | RNF-SEC-01 | Credenciales en variables de entorno | Cero hardcode de claves en código fuente | Grep en codebase |
 | RNF-SEC-02 | Autenticación JWT | Tokens firmados, no sesiones en servidor | Inspeccionar cookies |
 | RNF-SEC-03 | Row Level Security | Todas las tablas con RLS activo | Query directo a Supabase |
-| RNF-SEC-04 | HTTPS obligatorio | Toda comunicación cifrada | Vercel lo provee |
-| RNF-SEC-05 | Sanitización de inputs | Prevenir inyección SQL/XSS | Supabase SDK lo maneja |
+| RNF-SEC-04 | Conexión segura | Supabase usa HTTPS por defecto | Verificar URL |
+| RNF-SEC-05 | Sanitización de inputs | Prevenir inyección SQL | Supabase SDK lo maneja |
 
 #### ⚡ Rendimiento (PERF)
 
 | ID | Requisito | Especificación | Verificación |
 |----|-----------|----------------|--------------|
-| RNF-PERF-01 | Tiempo de carga inicial | < 3 segundos en conexión 3G | Lighthouse audit |
-| RNF-PERF-02 | Respuesta de API | < 500ms para operaciones CRUD | Console timing |
-| RNF-PERF-03 | Sin bloqueos de UI | Operaciones asíncronas no bloquean | Prueba manual |
+| RNF-PERF-01 | Respuesta rápida | < 2 segundos para operaciones CRUD | Medición en consola |
+| RNF-PERF-02 | Sin bloqueos | Operaciones no bloquean la interfaz | Prueba manual |
+| RNF-PERF-03 | Conexión eficiente | Singleton para cliente Supabase | Code review |
 
 #### 🏗️ Arquitectura (ARCH)
 
 | ID | Requisito | Especificación | Verificación |
 |----|-----------|----------------|--------------|
-| RNF-ARCH-01 | 100% Stateless | Sin estado en memoria del servidor | Code review |
-| RNF-ARCH-02 | Compatibilidad Serverless | Funciona en Vercel sin modificaciones | Deploy exitoso |
-| RNF-ARCH-03 | Separación de responsabilidades | Código organizado por módulos | Estructura de carpetas |
+| RNF-ARCH-01 | Principios POO | Clases con responsabilidades definidas | Code review |
+| RNF-ARCH-02 | Patrones de diseño | Singleton, Adapter, Strategy implementados | Code review |
+| RNF-ARCH-03 | Separación de responsabilidades | Código organizado por capas | Estructura de carpetas |
 
 #### 🔄 Mantenibilidad (MAINT)
 
@@ -95,9 +96,9 @@
 
 | ID | Requisito | Especificación | Verificación |
 |----|-----------|----------------|--------------|
-| RNF-UX-01 | Mobile-first | Funciona en pantallas desde 320px | Chrome DevTools |
+| RNF-UX-01 | CLI intuitivo | Menú claro con opciones numeradas | Prueba manual |
 | RNF-UX-02 | Feedback inmediato | Usuario siempre sabe qué está pasando | Prueba manual |
-| RNF-UX-03 | Sin elementos rotos | Todo botón visible tiene función | Prueba manual |
+| RNF-UX-03 | Sin opciones rotas | Toda opción del menú tiene función | Prueba manual |
 
 ---
 
@@ -480,7 +481,7 @@ Siguiendo el principio de **Separación de Responsabilidades (SoC)**, el sistema
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    ARQUITECTURA MODULAR                     │
+│                    ARQUITECTURA MODULAR (PYTHON)            │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
@@ -488,11 +489,9 @@ Siguiendo el principio de **Separación de Responsabilidades (SoC)**, el sistema
 │  │  Responsabilidad: Autenticación y autorización      │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Componentes:                                       │   │
-│  │  • src/app/login/page.js (UI de login/registro)     │   │
-│  │  • src/components/AuthForm.js (formulario)          │   │
-│  │  • src/components/LogoutButton.js (botón logout)    │   │
-│  │  • src/context/AuthContext.js (estado global)       │   │
-│  │  • src/middleware.js (protección de rutas)          │   │
+│  │  • src/services/auth_service.py (AuthService)       │   │
+│  │  • src/services/session_manager.py (SessionManager) │   │
+│  │  • IAuthStrategy, EmailPasswordStrategy             │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Requisitos: RF-01, RF-02, RF-03, RF-04, RF-15      │   │
 │  └─────────────────────────────────────────────────────┘   │
@@ -503,11 +502,8 @@ Siguiendo el principio de **Separación de Responsabilidades (SoC)**, el sistema
 │  │  Responsabilidad: CRUD de notas del usuario         │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Componentes:                                       │   │
-│  │  • src/app/notas/page.js (lista)                    │   │
-│  │  • src/app/notas/nueva/page.js (crear)              │   │
-│  │  • src/app/notas/[id]/page.js (editar)              │   │
-│  │  • src/components/NotaCard.js (card individual)     │   │
-│  │  • src/components/NotaForm.js (formulario)          │   │
+│  │  • src/services/notas_service.py (NotasService)     │   │
+│  │  • src/models/nota.py (clase Nota)                  │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Requisitos: RF-05, RF-06, RF-07, RF-08, RF-16, RF-17│   │
 │  └─────────────────────────────────────────────────────┘   │
@@ -515,14 +511,11 @@ Siguiendo el principio de **Separación de Responsabilidades (SoC)**, el sistema
 │                            ▼                                │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │                   MÓDULO: UI                         │   │
-│  │  Responsabilidad: Experiencia de usuario            │   │
+│  │  Responsabilidad: Interfaz de línea de comandos     │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Componentes:                                       │   │
-│  │  • src/styles/globals.css (estilos globales)        │   │
-│  │  • src/components/Loading.js (spinner)              │   │
-│  │  • src/components/ErrorMessage.js (errores)         │   │
-│  │  • src/components/EmptyState.js (estados vacíos)    │   │
-│  │  • src/app/layout.js (layout principal)             │   │
+│  │  • src/ui/menu.py (menú interactivo CLI)            │   │
+│  │  • Funciones: input(), print()                      │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Requisitos: RF-10, RF-11, RF-12, RF-13, RF-14      │   │
 │  └─────────────────────────────────────────────────────┘   │
@@ -533,9 +526,9 @@ Siguiendo el principio de **Separación de Responsabilidades (SoC)**, el sistema
 │  │  Responsabilidad: Infraestructura compartida        │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Componentes:                                       │   │
-│  │  • src/lib/supabase.js (cliente Supabase)           │   │
-│  │  • .env.local (variables de entorno)                │   │
-│  │  • next.config.js (configuración Next.js)           │   │
+│  │  • src/repositories/supabase_client.py (Singleton)  │   │
+│  │  • src/config/settings.py (configuración .env)      │   │
+│  │  • .env (variables de entorno)                      │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Requisitos: RNF-SEC-01, RNF-ARCH-01, RNF-ARCH-02   │   │
 │  └─────────────────────────────────────────────────────┘   │
@@ -546,7 +539,8 @@ Siguiendo el principio de **Separación de Responsabilidades (SoC)**, el sistema
 │  │  Responsabilidad: Modelo y seguridad de datos       │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Componentes:                                       │   │
-│  │  • supabase/migrations/001_create_notas.sql         │   │
+│  │  • database/init.sql (script SQL)                   │   │
+│  │  • src/models/user.py (clase User)                  │   │
 │  │  • Políticas RLS en Supabase Dashboard              │   │
 │  │  ───────────────────────────────────────────────    │   │
 │  │  Requisitos: RF-09, RNF-SEC-03, RNF-SEC-05          │   │
@@ -559,23 +553,23 @@ Siguiendo el principio de **Separación de Responsabilidades (SoC)**, el sistema
 
 | Requisito | Módulo | Archivo Principal | Historia de Usuario | Caso de Uso |
 |-----------|--------|-------------------|---------------------|-------------|
-| RF-01 | AUTH | login/page.js | HU-01 | CU-01 |
-| RF-02 | AUTH | login/page.js | HU-02 | CU-01 |
-| RF-03 | AUTH | LogoutButton.js | HU-03 | CU-01 |
-| RF-04 | AUTH | middleware.js | HU-02, HU-03 | CU-01 |
-| RF-05 | NOTAS | notas/nueva/page.js | HU-04 | CU-02 |
-| RF-06 | NOTAS | notas/page.js | HU-05 | CU-02 |
-| RF-07 | NOTAS | notas/[id]/page.js | HU-06 | CU-02 |
-| RF-08 | NOTAS | NotaCard.js | HU-07 | CU-02 |
-| RF-09 | DATA | migrations/*.sql | HU-04, HU-05, HU-06 | CU-02 |
-| RF-10 | UI | NotaForm.js | HU-04 | CU-02 |
-| RF-11 | UI | Loading.js | - | - |
-| RF-12 | UI | ErrorMessage.js | - | - |
-| RF-13 | UI | globals.css | - | - |
-| RF-14 | UI | NotaCard.js | HU-07 | CU-02 |
-| RF-15 | AUTH | supabase.js | HU-02 | CU-01 |
-| RF-16 | NOTAS | notas/page.js | HU-05 | CU-02 |
-| RF-17 | NOTAS | NotaCard.js | HU-06 | CU-02 |
+| RF-01 | AUTH | auth_service.py | HU-01 | CU-01 |
+| RF-02 | AUTH | auth_service.py | HU-02 | CU-01 |
+| RF-03 | AUTH | session_manager.py | HU-03 | CU-01 |
+| RF-04 | AUTH | menu.py | HU-02, HU-03 | CU-01 |
+| RF-05 | NOTAS | notas_service.py | HU-04 | CU-02 |
+| RF-06 | NOTAS | notas_service.py | HU-05 | CU-02 |
+| RF-07 | NOTAS | notas_service.py | HU-06 | CU-02 |
+| RF-08 | NOTAS | notas_service.py | HU-07 | CU-02 |
+| RF-09 | DATA | init.sql | HU-04, HU-05, HU-06 | CU-02 |
+| RF-10 | UI | menu.py | HU-04 | CU-02 |
+| RF-11 | UI | menu.py | - | - |
+| RF-12 | UI | menu.py | - | - |
+| RF-13 | UI | menu.py | - | - |
+| RF-14 | UI | menu.py | HU-07 | CU-02 |
+| RF-15 | AUTH | session_manager.py | HU-02 | CU-01 |
+| RF-16 | NOTAS | notas_service.py | HU-05 | CU-02 |
+| RF-17 | NOTAS | nota.py | HU-06 | CU-02 |
 
 ### 3.3 Dependencias entre Módulos
 

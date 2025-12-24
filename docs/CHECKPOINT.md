@@ -33,12 +33,12 @@ UI:           CLI interactivo (menú en consola)
 | Fase | Archivo | Estado | Actualizado |
 |------|---------|--------|-------------|
 | 1 | `docs/01_planificacion.md` | ✅ Actualizado | 2025-12-23 |
-| 2 | `docs/02_analisis.md` | ⚠️ Pendiente | - |
+| 2 | `docs/02_analisis.md` | ✅ Actualizado | 2025-12-23 |
 | 3-A | `docs/03_a_1_arquitectura.md` | ✅ Actualizado | 2025-12-23 |
 | 3-A | `docs/03_a_2_patrones.md` | ✅ Actualizado | 2025-12-23 |
 | 3-A | `docs/03_a_3_stateless.md` | ✅ Actualizado | 2025-12-23 |
 | 3-B | `docs/03_b_modelado_datos.md` | ✅ Actualizado | 2025-12-23 |
-| 3-C | `docs/03_c_api_dinamica.md` | ⚠️ Pendiente | - |
+| 3-C | `docs/03_c_api_dinamica.md` | ✅ Actualizado | 2025-12-23 |
 | 3.5 | `docs/035_manual_bbdd.md` | ✅ Actualizado | 2025-12-23 |
 | 3.5 | `database/init.sql` | ✅ Sin cambios | 2025-12-23 |
 | - | `.env.example` | ✅ Actualizado | 2025-12-23 |

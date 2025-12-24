@@ -2,7 +2,8 @@
 
 > **Proyecto:** CRUD Didáctico con Supabase  
 > **Fecha:** 2025-12-23  
-> **Referencia:** Continuación de `03_b_modelado_datos.md`
+> **Referencia:** Continuación de `03_b_modelado_datos.md`  
+> **Stack:** Python POO (sin frameworks)
 
 ---
 
@@ -331,34 +332,28 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant U as Usuario
-    participant F as Frontend
-    participant H as useNotas Hook
+    participant M as Menu (CLI)
     participant NS as NotasService
     participant DB as Supabase DB
     participant RLS as RLS Policy
 
-    U->>F: Completa formulario (título, contenido)
-    U->>F: Click "Guardar"
-    F->>H: create({ title, content })
-    H->>H: setLoading(true)
-    H->>NS: create({ title, content, user_id })
+    U->>M: Ingresa título y contenido
+    U->>M: Confirma crear nota
+    M->>M: print("Creando nota...")
+    M->>NS: crear(titulo, contenido)
     NS->>DB: POST /rest/v1/notas
     DB->>RLS: Verificar auth.uid() = user_id
     
     alt user_id coincide
         RLS-->>DB: ✓ Permitido
         DB-->>NS: 201 { nota creada }
-        NS-->>H: { data: nota }
-        H->>H: Agregar nota a lista
-        H->>H: setLoading(false)
-        H-->>F: Actualizar UI
-        F-->>U: Mensaje "Nota creada"
+        NS-->>M: return Nota object
+        M-->>U: "✅ Nota creada exitosamente"
     else user_id no coincide
         RLS-->>DB: ✗ Denegado
         DB-->>NS: 403 Forbidden
-        NS-->>H: throw Error
-        H-->>F: setError("No autorizado")
-        F-->>U: Mostrar error
+        NS-->>M: raise PermissionError
+        M-->>U: "❌ Error: No autorizado"
     end
 ```
 
@@ -402,39 +397,36 @@ sequenceDiagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    GESTIÓN DE API KEYS                                  │
+│                    GESTIÓN DE API KEYS (PYTHON)                          │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  SUPABASE KEYS:                                                        │
 │  ──────────────                                                         │
 │                                                                         │
 │  1. ANON KEY (Pública)                                                 │
-│     ├── Expuesta en el cliente (es seguro)                             │
+│     ├── Segura porque RLS protege                                      │
 │     ├── RLS determina qué puede hacer                                  │
-│     └── Guardada en: NEXT_PUBLIC_SUPABASE_ANON_KEY                     │
-│                                                                         │
-│  2. SERVICE ROLE KEY (Secreta) 🔒                                      │
-│     ├── NUNCA exponer en cliente                                       │
-│     ├── Saltea RLS (acceso total)                                      │
-│     ├── Solo usar en Server Actions o APIs seguras                     │
-│     └── Guardada en: SUPABASE_SERVICE_ROLE_KEY (sin NEXT_PUBLIC_)      │
+│     └── Guardada en: SUPABASE_KEY                                      │
 │                                                                         │
 │  ALMACENAMIENTO:                                                       │
 │  ─────────────────                                                      │
 │                                                                         │
 │  LOCAL:                                                                │
-│  ├── .env.local (NO se sube a Git)                                     │
-│  │   NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co                  │
-│  │   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...                       │
-│  │   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi... (opcional)                │
+│  ├── .env (NO se sube a Git)                                          │
+│  │   SUPABASE_URL=https://xxx.supabase.co                              │
+│  │   SUPABASE_KEY=eyJhbGciOi...                                        │
 │  │                                                                      │
 │  └── .env.example (SÍ se sube a Git)                                   │
-│      NEXT_PUBLIC_SUPABASE_URL=tu_url_aqui                              │
-│      NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_aqui                    │
+│      SUPABASE_URL=tu_url_aqui                                          │
+│      SUPABASE_KEY=tu_anon_key_aqui                                     │
 │                                                                         │
-│  VERCEL:                                                               │
-│  └── Dashboard > Settings > Environment Variables                      │
-│      (Mismas variables que .env.local)                                 │
+│  CARGA EN PYTHON:                                                      │
+│  ─────────────────                                                      │
+│  from dotenv import load_dotenv                                        │
+│  import os                                                             │
+│  load_dotenv()                                                         │
+│  url = os.getenv('SUPABASE_URL')                                       │
+│  key = os.getenv('SUPABASE_KEY')                                       │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -565,11 +557,9 @@ sequenceDiagram
 
 | Aspecto | Estrategia | Ubicación |
 |---------|------------|-----------|
-| API Keys públicas | `NEXT_PUBLIC_*` + RLS | `.env.local` |
-| API Keys secretas | Sin prefijo, solo servidor | `.env.local` |
-| Sesión | JWT en cookies HttpOnly | Supabase Auth |
-| Inactividad | Watchdog 15 min en cliente | `AuthContext` |
-| Token expirado | Catch 401 → redirect login | Services + Hooks |
+| API Keys | Variables en `.env` + python-dotenv | `Settings` Singleton |
+| Sesión | JWT en `SessionManager` | `session_manager.py` |
+| Token expirado | Verificar antes de operaciones | Services |
 | Aislamiento datos | Row Level Security | Políticas PostgreSQL |
 
 ---

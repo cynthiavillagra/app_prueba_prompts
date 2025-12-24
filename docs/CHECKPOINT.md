@@ -1,6 +1,6 @@
 # 📍 CHECKPOINT - Estado del Proyecto
 
-> **Última Actualización:** 2025-12-23T22:22:00-03:00  
+> **Última Actualización:** 2025-12-23T22:27:00-03:00  
 > **Proyecto:** CRUD Didáctico con Supabase
 
 ---
@@ -9,9 +9,9 @@
 
 | Aspecto | Valor |
 |---------|-------|
-| **Fase Actual** | Fase 3-C (API y Dinámica) - En Revisión |
+| **Fase Actual** | Fase 3.5 Completada (Persistencia) |
 | **Próxima Fase** | Fase 4 - Implementación |
-| **% Completado** | 45% |
+| **% Completado** | 50% |
 
 ---
 
@@ -23,6 +23,7 @@ Backend:      Supabase (PostgreSQL + Auth)
 Hosting:      Vercel (Serverless)
 Estilos:      CSS Vanilla
 Lenguaje:     JavaScript (ES6+)
+Base de Datos: PostgreSQL (Supabase) con RLS
 ```
 
 ---
@@ -37,34 +38,41 @@ Lenguaje:     JavaScript (ES6+)
 | 3-A | `docs/03_a_2_patrones.md` | ✅ Completo | 2025-12-23 |
 | 3-A | `docs/03_a_3_stateless.md` | ✅ Completo | 2025-12-23 |
 | 3-B | `docs/03_b_modelado_datos.md` | ✅ Completo | 2025-12-23 |
-| 3-C | `docs/03_c_api_dinamica.md` | ⏳ En revisión | 2025-12-23 |
+| 3-C | `docs/03_c_api_dinamica.md` | ✅ Completo | 2025-12-23 |
+| 3.5 | `docs/035_manual_bbdd.md` | ✅ Completo | 2025-12-23 |
+| 3.5 | `database/init.sql` | ✅ Completo | 2025-12-23 |
+| - | `.env.example` | ✅ Completo | 2025-12-23 |
+| - | `.gitignore` | ✅ Actualizado | 2025-12-23 |
 | - | `docs/CHECKPOINT.md` | ✅ Activo | 2025-12-23 |
 
 ---
 
-## 🔌 Endpoints Definidos (Fase 3-C)
+## 🗄️ Persistencia Configurada
 
-| Método | Ruta | Módulo | HU |
-|--------|------|--------|-----|
-| POST | `/auth/v1/signup` | AUTH | HU-01 |
-| POST | `/auth/v1/token` | AUTH | HU-02 |
-| POST | `/auth/v1/logout` | AUTH | HU-03 |
-| GET | `/rest/v1/notas` | NOTAS | HU-05 |
-| POST | `/rest/v1/notas` | NOTAS | HU-04 |
-| PATCH | `/rest/v1/notas?id=eq.{id}` | NOTAS | HU-06 |
-| DELETE | `/rest/v1/notas?id=eq.{id}` | NOTAS | HU-07 |
+| Aspecto | Configuración |
+|---------|---------------|
+| **Tipo** | PostgreSQL (Supabase) |
+| **Tabla** | `notas` |
+| **RLS** | 4 políticas activas |
+| **Script** | `database/init.sql` |
+
+### Variables de Entorno
+
+| Variable | Tipo | Archivo |
+|----------|------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Pública | `.env.local` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Pública | `.env.local` |
+| `SUPABASE_JWT_SECRET` | Secreta | `.env.local` |
 
 ---
 
-## 🔒 Seguridad Definida
+## 🔒 Seguridad Configurada
 
-| Aspecto | Estrategia |
-|---------|------------|
-| API Keys | Variables de entorno |
-| Sesión | JWT en cookies HttpOnly |
-| Watchdog | 15 min inactividad → logout |
-| Token expirado | Catch 401 → redirect |
-| Aislamiento | Row Level Security |
+- ✅ `.env.local` en `.gitignore`
+- ✅ `.env.example` como plantilla (sin secretos)
+- ✅ RLS habilitado en tabla `notas`
+- ✅ 4 políticas de seguridad creadas
+- ✅ Trigger para `updated_at` automático
 
 ---
 
@@ -76,13 +84,24 @@ Lenguaje:     JavaScript (ES6+)
 | 2025-12-23 | 2 | Análisis |
 | 2025-12-23 | 3-A | Arquitectura y patrones |
 | 2025-12-23 | 3-B | Modelado de datos |
-| 2025-12-23 | 3-C | API y dinámica (en revisión) |
+| 2025-12-23 | 3-C | API y dinámica |
+| 2025-12-23 | 3.5 | Estrategia de persistencia |
 
 ---
 
-## ⏸️ ESTADO: Esperando Aprobación de Fase 3-C
+## 🔜 Próximo Paso
 
-> **Próxima acción:** Usuario debe aprobar API y seguridad.
+**Iniciar Fase 4: Implementación**
+- Crear proyecto Next.js
+- Configurar cliente Supabase
+- Implementar autenticación
+- Implementar CRUD de notas
+
+---
+
+## ⏸️ ESTADO: Fase 3 Completa
+
+> El diseño está completo. Listo para implementación.
 
 ---
 

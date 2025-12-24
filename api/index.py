@@ -365,28 +365,138 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 # ============================================================================
-# VERCEL HANDLER - Función expuesta para Vercel
+# VERCEL HANDLER - Clase compatible con Vercel Serverless
 # ============================================================================
 
-# Instancia global para Vercel (se recrea en cada cold start)
-app = VercelBridge()
+# Instancia global del bridge (se recrea en cada cold start)
+_bridge = VercelBridge()
 
-def handler(request):
+class handler(BaseHTTPRequestHandler):
     """
     Handler para Vercel Serverless Functions.
     
-    NOTA: Este es el formato esperado por Vercel para Python.
-    Recibe un objeto request y retorna un response.
+    IMPORTANTE - FORMATO VERCEL:
+    - Vercel Python usa BaseHTTPRequestHandler como base
+    - La clase DEBE llamarse 'handler' (minúsculas)
+    - Vercel llama automáticamente a do_GET, do_POST, etc.
     
-    En Vercel real, usar:
-    from http.server import BaseHTTPRequestHandler
+    POR QUÉ BaseHTTPRequestHandler:
+    - SÍ: Es el formato esperado por @vercel/python
+    - SÍ: Permite manejar GET, POST, DELETE
+    - NO Flask/Django: Sin frameworks
     """
-    # Para Vercel, el formato es diferente
-    # Este es un ejemplo simplificado
-    return {
-        'statusCode': 200,
-        'body': json.dumps({'message': 'Use /api/health para verificar'})
-    }
+    
+    def do_GET(self):
+        """Maneja requests GET en Vercel."""
+        try:
+            parsed = urlparse(self.path)
+            
+            # Servir archivos estáticos (frontend)
+            if self._serve_static(parsed.path):
+                return
+            
+            # API routes
+            query = parse_qs(parsed.query)
+            status, data = _bridge.handle_request('GET', parsed.path, query)
+            self._send_json(status, data)
+            
+        except Exception as e:
+            self._send_json(500, {'error': str(e)})
+    
+    def do_POST(self):
+        """Maneja requests POST en Vercel."""
+        try:
+            parsed = urlparse(self.path)
+            query = parse_qs(parsed.query)
+            body = self._parse_body()
+            status, data = _bridge.handle_request('POST', parsed.path, query, body)
+            self._send_json(status, data)
+            
+        except Exception as e:
+            self._send_json(500, {'error': str(e)})
+    
+    def do_DELETE(self):
+        """Maneja requests DELETE en Vercel."""
+        try:
+            parsed = urlparse(self.path)
+            query = parse_qs(parsed.query)
+            status, data = _bridge.handle_request('DELETE', parsed.path, query)
+            self._send_json(status, data)
+            
+        except Exception as e:
+            self._send_json(500, {'error': str(e)})
+    
+    def do_OPTIONS(self):
+        """Maneja CORS preflight."""
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.end_headers()
+    
+    def _send_json(self, status: int, data: dict):
+        """Envía respuesta JSON."""
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps(data, indent=2).encode('utf-8'))
+    
+    def _parse_body(self) -> dict:
+        """Parsea el body del request."""
+        content_length = int(self.headers.get('Content-Length', 0))
+        if content_length > 0:
+            body = self.rfile.read(content_length)
+            try:
+                return json.loads(body.decode('utf-8'))
+            except json.JSONDecodeError:
+                return {}
+        return {}
+    
+    def _serve_static(self, path: str) -> bool:
+        """Sirve archivos estáticos del frontend."""
+        if path.startswith('/api'):
+            return False
+        
+        public_dir = os.path.join(_parent_dir, 'public')
+        
+        if path == '/' or path == '':
+            file_path = os.path.join(public_dir, 'index.html')
+        else:
+            file_path = os.path.join(public_dir, path.lstrip('/'))
+        
+        if not os.path.exists(file_path):
+            return False
+        
+        # Seguridad: verificar que está dentro de public/
+        if not os.path.realpath(file_path).startswith(os.path.realpath(public_dir)):
+            return False
+        
+        # Content types
+        ext = os.path.splitext(file_path)[1].lower()
+        content_types = {
+            '.html': 'text/html',
+            '.css': 'text/css',
+            '.js': 'application/javascript',
+            '.json': 'application/json',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.ico': 'image/x-icon',
+        }
+        content_type = content_types.get(ext, 'text/plain')
+        
+        try:
+            with open(file_path, 'rb') as f:
+                content = f.read()
+            
+            self.send_response(200)
+            self.send_header('Content-Type', f'{content_type}; charset=utf-8')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
+            return True
+        except:
+            return False
 
 
 # ============================================================================

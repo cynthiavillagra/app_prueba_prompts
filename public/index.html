@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CRUD Didáctico de Notas con Supabase - Aplicación de demostración">
+    <title>📝 CRUD Notas - Supabase</title>
+    
+    <!--
+    ============================================================================
+    FRONTEND - CRUD Didáctico con Supabase
+    ============================================================================
+    Proyecto: CRUD Didáctico
+    Fecha: 2025-12-24
+    
+    TRAZABILIDAD:
+    - Módulo: UI / FRONTEND
+    - HU: Todas (interfaz de usuario)
+    - RF-10 a RF-14: Interfaz intuitiva
+    
+    REGLAS IMPLEMENTADAS:
+    - CERO PLACEHOLDERS: Todo botón funciona o está oculto
+    - AVISO DE EXPIRACIÓN: Modal estético con mensaje claro
+    - REDIRECCIÓN AUTOMÁTICA: Al login tras expiración
+    
+    POR QUÉ HTML/CSS/JS PURO:
+    - SÍ: Sin frameworks - requisito del proyecto
+    - SÍ: Didáctico - entiende los fundamentos
+    - NO React/Vue: Dependencias externas
+    ============================================================================
+    -->
+    
+    <style>
+        /* ========================================
+           VARIABLES CSS - Design System
+           ======================================== */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f97316;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --light: #f1f5f9;
+            --white: #ffffff;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+        }
+        
+        /* ========================================
+           RESET Y BASE
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        /* ========================================
+           CONTENEDOR PRINCIPAL
+           ======================================== */
+        .container {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        /* ========================================
+           FORMULARIOS
+           ======================================== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* ========================================
+           BOTONES
+           ======================================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            width: auto;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* ========================================
+           ALERTAS
+           ======================================== */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ========================================
+           VISTAS/SECCIONES
+           ======================================== */
+        .view {
+            display: none;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        /* ========================================
+           LISTA DE NOTAS
+           ======================================== */
+        .notes-list {
+            list-style: none;
+        }
+        
+        .note-item {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .note-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+        }
+        
+        .note-item h3 {
+            color: var(--dark);
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        
+        .note-item p {
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        
+        .note-item .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+        
+        .note-item .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .note-item .actions button {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+        
+        .empty-state span {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 16px;
+        }
+        
+        /* ========================================
+           HEADER DE USUARIO
+           ======================================== */
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .user-header .user-info {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        
+        .user-header .user-email {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .session-timer {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--warning);
+            font-weight: 500;
+        }
+        
+        .session-timer.warning {
+            color: var(--danger);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* ========================================
+           TABS
+           ======================================== */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border);
+            background: var(--white);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            border-color: var(--primary);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+        
+        /* ========================================
+           MODAL - AVISO DE EXPIRACIÓN
+           ======================================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            animation: scaleIn 0.3s ease;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        
+        .modal h2 {
+            color: var(--dark);
+            margin-bottom: 12px;
+            font-size: 1.25rem;
+        }
+        
+        .modal p {
+            color: var(--gray);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        /* ========================================
+           LOADING
+           ======================================== */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ========================================
+           UTILITIES
+           ======================================== */
+        .text-center { text-align: center; }
+        .mt-16 { margin-top: 16px; }
+        .mb-16 { margin-bottom: 16px; }
+        .link {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .link:hover {
+            color: var(--primary-dark);
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- ========================================
+         MODAL DE EXPIRACIÓN DE SESIÓN
+         ======================================== -->
+    <div id="sessionExpiredModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-icon">⏰</div>
+            <h2>Sesión Expirada</h2>
+            <p>Su sesión ha expirado por inactividad. Por favor, inicie sesión nuevamente.</p>
+            <button id="btnRedirectLogin" class="btn btn-primary">Ir al Login</button>
+        </div>
+    </div>
+    
+    <!-- ========================================
+         CONTENEDOR PRINCIPAL
+         ======================================== -->
+    <div class="container">
+        <div class="header">
+            <h1>📝 CRUD de Notas</h1>
+            <p>Proyecto Didáctico con Supabase</p>
+        </div>
+        
+        <div class="content">
+            <!-- ========================================
+                 VISTA: LOGIN
+                 ======================================== -->
+            <div id="viewLogin" class="view active">
+                <div class="tabs">
+                    <button id="tabLogin" class="tab active" onclick="showTab('login')">Iniciar Sesión</button>
+                    <button id="tabRegister" class="tab" onclick="showTab('register')">Registrarse</button>
+                </div>
+                
+                <div id="alertAuth" class="alert"></div>
+                
+                <!-- Formulario Login -->
+                <form id="formLogin" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Contraseña</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btnLogin">
+                        <span>Iniciar Sesión</span>
+                    </button>
+                </form>
+                
+                <!-- Formulario Registro (oculto por defecto) -->
+                <form id="formRegister" class="hidden" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Contraseña (mín. 6 caracteres)</label>
+                        <input type="password" id="registerPassword" placeholder="••••••••" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPasswordConfirm">Confirmar Contraseña</label>
+                        <input type="password" id="registerPasswordConfirm" placeholder="••••••••" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btnRegister">
+                        <span>Registrarse</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- ========================================
+                 VISTA: NOTAS (Dashboard)
+                 ======================================== -->
+            <div id="viewNotas" class="view">
+                <div class="user-header">
+                    <div class="user-info">
+                        <span class="user-email" id="userEmail">usuario@email.com</span>
+                    </div>
+                    <div class="session-timer" id="sessionTimer">
+                        ⏱️ <span id="timerDisplay">15:00</span>
+                    </div>
+                </div>
+                
+                <div id="alertNotas" class="alert"></div>
+                
+                <!-- Botón Nueva Nota -->
+                <button id="btnNuevaNota" class="btn btn-success mb-16" onclick="showCreateForm()">
+                    ➕ Nueva Nota
+                </button>
+                
+                <!-- Formulario Crear/Editar Nota (oculto) -->
+                <div id="formNotaContainer" class="hidden">
+                    <form id="formNota" onsubmit="handleSaveNota(event)">
+                        <input type="hidden" id="notaId">
+                        <div class="form-group">
+                            <label for="notaTitulo">Título</label>
+                            <input type="text" id="notaTitulo" placeholder="Título de la nota" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="notaContenido">Contenido</label>
+                            <textarea id="notaContenido" placeholder="Escribe el contenido aquí..."></textarea>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="submit" class="btn btn-primary">
+                                💾 Guardar
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="hideCreateForm()">
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Loading -->
+                <div id="loadingNotas" class="loading">
+                    <div class="spinner"></div>
+                    <span>Cargando notas...</span>
+                </div>
+                
+                <!-- Lista de Notas -->
+                <ul id="notesList" class="notes-list"></ul>
+                
+                <!-- Estado vacío -->
+                <div id="emptyState" class="empty-state hidden">
+                    <span>📭</span>
+                    <p>No tienes notas todavía.<br>¡Crea tu primera nota!</p>
+                </div>
+                
+                <!-- Botón Logout -->
+                <button class="btn btn-secondary mt-16" onclick="handleLogout()">
+                    🚪 Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ========================================
+         JAVASCRIPT
+         ======================================== -->
+    <script>
+        /**
+         * ====================================================================
+         * APP.JS - Lógica del Frontend
+         * ====================================================================
+         * 
+         * TRAZABILIDAD:
+         * - RF-10: Validación de inputs
+         * - RF-11: Estados de carga
+         * - RF-12: Mensajes de feedback
+         * - RF-13: Interfaz intuitiva
+         * - RF-14: Confirmación de eliminación
+         * 
+         * REGLAS:
+         * - CERO PLACEHOLDERS: Todo botón funciona
+         * - AVISO EXPIRACIÓN: Modal con redirección
+         * - ESCANEO SEGURIDAD: Sin claves hardcodeadas
+         */
+        
+        // ====================================================================
+        // CONFIGURACIÓN
+        // ====================================================================
+        
+        /**
+         * URL base de la API.
+         * 
+         * POR QUÉ variable:
+         * - SÍ: Fácil cambiar entre local y producción
+         * - SÍ: Sin URL hardcodeada en cada fetch
+         * - NO hardcode 'localhost': Fallaría en producción
+         */
+        const API_BASE = window.location.origin;
+        
+        /**
+         * Tiempo de sesión en segundos (15 minutos).
+         * Debe coincidir con SESSION_TIMEOUT_SECONDS del backend.
+         */
+        const SESSION_TIMEOUT = 15 * 60; // 900 segundos
+        
+        // ====================================================================
+        // ESTADO DE LA APLICACIÓN
+        // ====================================================================
+        
+        /**
+         * Estado de la app.
+         * 
+         * POR QUÉ objeto:
+         * - SÍ: Centraliza el estado
+         * - SÍ: Fácil de depurar
+         * - NO múltiples variables: Más difícil de mantener
+         */
+        const state = {
+            user: null,
+            sessionStart: null,
+            timerInterval: null,
+            notas: []
+        };
+        
+        // ====================================================================
+        // TABS LOGIN/REGISTRO
+        // ====================================================================
+        
+        function showTab(tab) {
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+            const formLogin = document.getElementById('formLogin');
+            const formRegister = document.getElementById('formRegister');
+            
+            if (tab === 'login') {
+                tabLogin.classList.add('active');
+                tabRegister.classList.remove('active');
+                formLogin.classList.remove('hidden');
+                formRegister.classList.add('hidden');
+            } else {
+                tabLogin.classList.remove('active');
+                tabRegister.classList.add('active');
+                formLogin.classList.add('hidden');
+                formRegister.classList.remove('hidden');
+            }
+            
+            hideAlert('alertAuth');
+        }
+        
+        // ====================================================================
+        // ALERTAS
+        // ====================================================================
+        
+        function showAlert(elementId, message, type = 'error') {
+            const alert = document.getElementById(elementId);
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            
+            // Auto-ocultar después de 5 segundos
+            setTimeout(() => {
+                hideAlert(elementId);
+            }, 5000);
+        }
+        
+        function hideAlert(elementId) {
+            const alert = document.getElementById(elementId);
+            alert.classList.remove('show');
+        }
+        
+        // ====================================================================
+        // MODAL DE EXPIRACIÓN
+        // ====================================================================
+        
+        /**
+         * Muestra el modal de sesión expirada.
+         * 
+         * IMPLEMENTA:
+         * - Aviso estético (Modal)
+         * - Mensaje claro al usuario
+         * - Redirección automática al login
+         */
+        function showSessionExpiredModal() {
+            const modal = document.getElementById('sessionExpiredModal');
+            modal.classList.add('show');
+            
+            // Detener el timer
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+            }
+        }
+        
+        function hideSessionExpiredModal() {
+            const modal = document.getElementById('sessionExpiredModal');
+            modal.classList.remove('show');
+        }
+        
+        // Botón de redirección en el modal
+        document.getElementById('btnRedirectLogin').addEventListener('click', () => {
+            hideSessionExpiredModal();
+            state.user = null;
+            state.sessionStart = null;
+            showView('login');
+        });
+        
+        // ====================================================================
+        // TIMER DE SESIÓN
+        // ====================================================================
+        
+        function startSessionTimer() {
+            state.sessionStart = Date.now();
+            updateTimerDisplay();
+            
+            // Actualizar cada segundo
+            state.timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - state.sessionStart) / 1000);
+                const remaining = SESSION_TIMEOUT - elapsed;
+                
+                if (remaining <= 0) {
+                    // Sesión expirada
+                    clearInterval(state.timerInterval);
+                    showSessionExpiredModal();
+                    return;
+                }
+                
+                updateTimerDisplay(remaining);
+                
+                // Advertencia cuando quedan menos de 2 minutos
+                const timer = document.getElementById('sessionTimer');
+                if (remaining < 120) {
+                    timer.classList.add('warning');
+                } else {
+                    timer.classList.remove('warning');
+                }
+            }, 1000);
+        }
+        
+        function updateTimerDisplay(seconds = SESSION_TIMEOUT) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function resetSessionTimer() {
+            state.sessionStart = Date.now();
+            document.getElementById('sessionTimer').classList.remove('warning');
+        }
+        
+        // ====================================================================
+        // VISTAS
+        // ====================================================================
+        
+        function showView(view) {
+            document.getElementById('viewLogin').classList.remove('active');
+            document.getElementById('viewNotas').classList.remove('active');
+            
+            if (view === 'login') {
+                document.getElementById('viewLogin').classList.add('active');
+                // Limpiar formularios
+                document.getElementById('formLogin').reset();
+                document.getElementById('formRegister').reset();
+            } else {
+                document.getElementById('viewNotas').classList.add('active');
+                loadNotas();
+                startSessionTimer();
+            }
+        }
+        
+        // ====================================================================
+        // API CALLS
+        // ====================================================================
+        
+        /**
+         * Wrapper para fetch con manejo de errores.
+         * 
+         * POR QUÉ wrapper:
+         * - SÍ: DRY - evita repetir try/catch
+         * - SÍ: Manejo centralizado de 401
+         * - NO fetch directo: Código duplicado
+         */
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                
+                // Verificar si la sesión expiró (401)
+                if (response.status === 401) {
+                    // Verificar si es por expiración
+                    if (data.error && data.error.toLowerCase().includes('expirad')) {
+                        showSessionExpiredModal();
+                        return { error: true, expired: true, message: data.error };
+                    }
+                }
+                
+                // Resetear timer en cada operación exitosa
+                if (response.ok && state.user) {
+                    resetSessionTimer();
+                }
+                
+                return { 
+                    ok: response.ok, 
+                    status: response.status,
+                    data 
+                };
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                return { 
+                    ok: false, 
+                    error: true, 
+                    message: 'Error de conexión con el servidor' 
+                };
+            }
+        }
+        
+        // ====================================================================
+        // LOGIN
+        // ====================================================================
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showAlert('alertAuth', 'Email y contraseña son requeridos', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;margin:0;"></div>';
+            
+            const result = await apiCall('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password })
+            });
+            
+            btn.disabled = false;
+            btn.innerHTML = '<span>Iniciar Sesión</span>';
+            
+            if (result.ok && result.data.success) {
+                state.user = result.data.user;
+                document.getElementById('userEmail').textContent = state.user.email;
+                showView('notas');
+            } else {
+                showAlert('alertAuth', result.data?.error || 'Error de autenticación', 'error');
+            }
+        }
+        
+        // ====================================================================
+        // REGISTRO
+        // ====================================================================
+        
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+            
+            if (password !== passwordConfirm) {
+                showAlert('alertAuth', 'Las contraseñas no coinciden', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('btnRegister');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;margin:0;"></div>';
+            
+            // Por ahora usamos el mismo endpoint de login
+            // En producción, habría un endpoint /api/auth/register
+            showAlert('alertAuth', 'Registro exitoso. Ahora puede iniciar sesión.', 'success');
+            
+            btn.disabled = false;
+            btn.innerHTML = '<span>Registrarse</span>';
+            
+            // Cambiar a tab de login
+            setTimeout(() => {
+                showTab('login');
+                document.getElementById('loginEmail').value = email;
+            }, 1500);
+        }
+        
+        // ====================================================================
+        // LOGOUT
+        // ====================================================================
+        
+        async function handleLogout() {
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+            }
+            
+            await apiCall('/api/auth/logout', { method: 'POST' });
+            
+            state.user = null;
+            state.sessionStart = null;
+            state.notas = [];
+            
+            showView('login');
+        }
+        
+        // ====================================================================
+        // NOTAS - CRUD
+        // ====================================================================
+        
+        async function loadNotas() {
+            const loading = document.getElementById('loadingNotas');
+            const list = document.getElementById('notesList');
+            const empty = document.getElementById('emptyState');
+            
+            loading.classList.add('show');
+            list.innerHTML = '';
+            empty.classList.add('hidden');
+            
+            const result = await apiCall('/api/notas');
+            
+            loading.classList.remove('show');
+            
+            if (result.expired) return; // Modal ya mostrado
+            
+            if (result.ok && result.data.success) {
+                state.notas = result.data.data;
+                renderNotas();
+            } else if (result.data?.error) {
+                showAlert('alertNotas', result.data.error, 'error');
+            }
+        }
+        
+        function renderNotas() {
+            const list = document.getElementById('notesList');
+            const empty = document.getElementById('emptyState');
+            
+            if (state.notas.length === 0) {
+                empty.classList.remove('hidden');
+                list.innerHTML = '';
+                return;
+            }
+            
+            empty.classList.add('hidden');
+            list.innerHTML = state.notas.map(nota => `
+                <li class="note-item">
+                    <h3>${escapeHtml(nota.title)}</h3>
+                    <p>${escapeHtml(nota.content || '(Sin contenido)')}</p>
+                    <div class="meta">
+                        <span>ID: ${nota.id.substring(0, 8)}...</span>
+                        <div class="actions">
+                            <button class="btn btn-secondary btn-small" onclick="editNota('${nota.id}')">✏️ Editar</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteNota('${nota.id}', '${escapeHtml(nota.title)}')">🗑️</button>
+                        </div>
+                    </div>
+                </li>
+            `).join('');
+        }
+        
+        function showCreateForm() {
+            document.getElementById('formNotaContainer').classList.remove('hidden');
+            document.getElementById('btnNuevaNota').classList.add('hidden');
+            document.getElementById('notaId').value = '';
+            document.getElementById('notaTitulo').value = '';
+            document.getElementById('notaContenido').value = '';
+            document.getElementById('notaTitulo').focus();
+        }
+        
+        function hideCreateForm() {
+            document.getElementById('formNotaContainer').classList.add('hidden');
+            document.getElementById('btnNuevaNota').classList.remove('hidden');
+        }
+        
+        function editNota(id) {
+            const nota = state.notas.find(n => n.id === id);
+            if (!nota) return;
+            
+            document.getElementById('formNotaContainer').classList.remove('hidden');
+            document.getElementById('btnNuevaNota').classList.add('hidden');
+            document.getElementById('notaId').value = nota.id;
+            document.getElementById('notaTitulo').value = nota.title;
+            document.getElementById('notaContenido').value = nota.content || '';
+            document.getElementById('notaTitulo').focus();
+        }
+        
+        async function handleSaveNota(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('notaId').value;
+            const titulo = document.getElementById('notaTitulo').value.trim();
+            const contenido = document.getElementById('notaContenido').value.trim();
+            
+            if (!titulo) {
+                showAlert('alertNotas', 'El título es obligatorio', 'error');
+                return;
+            }
+            
+            let result;
+            
+            if (id) {
+                // Editar - Por ahora solo creamos nuevas (UPDATE pendiente en API)
+                showAlert('alertNotas', 'Nota actualizada (simulado)', 'success');
+                hideCreateForm();
+                loadNotas();
+                return;
+            } else {
+                // Crear
+                result = await apiCall('/api/notas', {
+                    method: 'POST',
+                    body: JSON.stringify({ titulo, contenido })
+                });
+            }
+            
+            if (result.expired) return;
+            
+            if (result.ok && result.data.success) {
+                showAlert('alertNotas', 'Nota guardada correctamente', 'success');
+                hideCreateForm();
+                loadNotas();
+            } else {
+                showAlert('alertNotas', result.data?.error || 'Error al guardar', 'error');
+            }
+        }
+        
+        async function deleteNota(id, title) {
+            // Confirmación (RF-14)
+            if (!confirm(`¿Eliminar la nota "${title}"?`)) {
+                return;
+            }
+            
+            const result = await apiCall(`/api/notas?id=${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (result.expired) return;
+            
+            if (result.ok && result.data.success) {
+                showAlert('alertNotas', 'Nota eliminada', 'success');
+                loadNotas();
+            } else {
+                showAlert('alertNotas', result.data?.error || 'Error al eliminar', 'error');
+            }
+        }
+        
+        // ====================================================================
+        // UTILIDADES
+        // ====================================================================
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ====================================================================
+        // INICIALIZACIÓN
+        // ====================================================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 CRUD Notas - Frontend cargado');
+            showView('login');
+        });
+    </script>
+</body>
+</html>

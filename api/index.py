@@ -262,9 +262,83 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         """Maneja requests GET."""
         parsed = urlparse(self.path)
+        
+        # Servir archivos estáticos del frontend
+        if self._serve_static_file(parsed.path):
+            return
+        
+        # API routes
         query = parse_qs(parsed.query)
         status, data = self.bridge.handle_request('GET', parsed.path, query)
         self._send_json_response(status, data)
+    
+    def _serve_static_file(self, path: str) -> bool:
+        """
+        Sirve archivos estáticos del directorio public/.
+        
+        POR QUÉ:
+        - SÍ: Permite servir el frontend HTML/CSS/JS
+        - SÍ: Sin necesidad de servidor web adicional
+        - NO en producción: Usar nginx/CDN para estáticos
+        
+        RETORNA: True si sirvió un archivo, False si es ruta API
+        """
+        # Rutas que deben manejarse como API
+        if path.startswith('/api'):
+            return False
+        
+        # Directorio de archivos estáticos
+        public_dir = os.path.join(_parent_dir, 'public')
+        
+        # Determinar archivo a servir
+        if path == '/' or path == '':
+            file_path = os.path.join(public_dir, 'index.html')
+        else:
+            # Limpiar path y buscar archivo
+            clean_path = path.lstrip('/')
+            file_path = os.path.join(public_dir, clean_path)
+        
+        # Verificar que el archivo existe y está dentro de public/
+        if not os.path.exists(file_path):
+            return False
+        
+        # Verificar que no se intenta acceder fuera de public/
+        real_path = os.path.realpath(file_path)
+        real_public = os.path.realpath(public_dir)
+        if not real_path.startswith(real_public):
+            return False
+        
+        # Determinar content-type
+        content_types = {
+            '.html': 'text/html',
+            '.css': 'text/css',
+            '.js': 'application/javascript',
+            '.json': 'application/json',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.ico': 'image/x-icon',
+            '.svg': 'image/svg+xml'
+        }
+        
+        ext = os.path.splitext(file_path)[1].lower()
+        content_type = content_types.get(ext, 'application/octet-stream')
+        
+        try:
+            # Leer y enviar archivo
+            with open(file_path, 'rb') as f:
+                content = f.read()
+            
+            self.send_response(200)
+            self.send_header('Content-Type', f'{content_type}; charset=utf-8')
+            self.send_header('Content-Length', len(content))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(content)
+            return True
+            
+        except Exception as e:
+            print(f"Error sirviendo archivo: {e}")
+            return False
     
     def do_POST(self) -> None:
         """Maneja requests POST."""

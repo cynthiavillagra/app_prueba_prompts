@@ -1,6 +1,6 @@
 # 📍 CHECKPOINT - Estado del Proyecto
 
-> **Última Actualización:** 2025-12-23T21:52:00-03:00  
+> **Última Actualización:** 2025-12-23T22:13:00-03:00  
 > **Proyecto:** CRUD Didáctico con Supabase
 
 ---
@@ -9,9 +9,9 @@
 
 | Aspecto | Valor |
 |---------|-------|
-| **Fase Actual** | Fase 1 y 2 Completadas (Planificación y Análisis) |
-| **Próxima Fase** | Fase 3 - Diseño de Arquitectura |
-| **% Completado** | 20% (2 de 6 fases) |
+| **Fase Actual** | Fase 3-B Completada (Modelado de Datos) |
+| **Próxima Fase** | Fase 4 - Implementación |
+| **% Completado** | 40% (3 de 6 fases) |
 
 ---
 
@@ -33,39 +33,36 @@ Lenguaje:     JavaScript (ES6+)
 |------|---------|--------|-------|
 | 1 | `docs/01_planificacion.md` | ✅ Completo | 2025-12-23 |
 | 2 | `docs/02_analisis.md` | ✅ Completo | 2025-12-23 |
+| 3-A | `docs/03_a_1_arquitectura.md` | ✅ Completo | 2025-12-23 |
+| 3-A | `docs/03_a_2_patrones.md` | ✅ Completo | 2025-12-23 |
+| 3-A | `docs/03_a_3_stateless.md` | ✅ Completo | 2025-12-23 |
+| 3-B | `docs/03_b_modelado_datos.md` | ✅ Completo | 2025-12-23 |
 | - | `docs/CHECKPOINT.md` | ✅ Activo | 2025-12-23 |
 
 ---
 
 ## 🔜 Siguiente Paso Sugerido
 
-**Iniciar Fase 3: Diseño de Arquitectura**
+**Iniciar Fase 4: Implementación**
 
-Contenido esperado en `docs/03_arquitectura.md`:
-- Diagrama de componentes (C4 o similar)
-- Diseño de base de datos (DDL completo)
-- Diseño de rutas y API
-- Wireframes de UI
+Contenido esperado:
+- Configuración inicial del proyecto Next.js
+- Creación de tabla en Supabase
+- Implementación de autenticación
+- Implementación de CRUD
 
 ---
 
-## 📋 Requisitos Clave Definidos
+## 📋 Patrones de Diseño Definidos
 
-### Funcionales (MUST HAVE)
-- [x] RF-01: Registro de usuario
-- [x] RF-02: Inicio de sesión
-- [x] RF-03: Cierre de sesión
-- [x] RF-04: Protección de rutas
-- [x] RF-05: Crear nota
-- [x] RF-06: Listar notas
-- [x] RF-07: Editar nota
-- [x] RF-08: Eliminar nota
-- [x] RF-09: Aislamiento de datos (RLS)
-
-### No Funcionales Críticos
-- [x] RNF-SEC-01: Variables de entorno (zero hardcode)
-- [x] RNF-SEC-03: Row Level Security
-- [x] RNF-ARCH-01: 100% Stateless
+| Patrón | Uso | Ubicación |
+|--------|-----|-----------|
+| Singleton | Cliente Supabase | `lib/supabase.js` |
+| Factory Method | Clientes por contexto | `lib/supabase.js` |
+| Adapter | Servicios desacoplados | `lib/services/*.js` |
+| Facade | Hooks simples | `hooks/*.js` |
+| Strategy | Auth extensible | `context/AuthContext.js` |
+| Observer | Estado reactivo | `onAuthStateChange` |
 
 ---
 
@@ -73,11 +70,15 @@ Contenido esperado en `docs/03_arquitectura.md`:
 
 | ID | Decisión | Justificación |
 |----|----------|---------------|
-| ADR-01 | Next.js App Router | Integración nativa Vercel, SSR moderno |
+| ADR-01 | Next.js App Router | Integración nativa Vercel |
 | ADR-02 | Supabase Auth | JWT incluido, RLS nativo |
 | ADR-03 | Sin OAuth inicial | Reducir complejidad MVP |
 | ADR-04 | CSS Vanilla | Control total, didáctico |
 | ADR-05 | JavaScript (no TS) | Menor barrera de entrada |
+| ADR-06 | Cliente Supabase Singleton | Evita múltiples conexiones |
+| ADR-12 | Cero variables globales | Stateless obligatorio |
+| ADR-13 | JWT en cookies | Compatibilidad serverless |
+| ADR-14 | Watchdog 15 min | Seguridad por inactividad |
 
 ---
 
@@ -87,13 +88,14 @@ Contenido esperado en `docs/03_arquitectura.md`:
 |-------|------|--------|
 | 2025-12-23 | 1 | Creación de `01_planificacion.md` |
 | 2025-12-23 | 2 | Creación de `02_analisis.md` |
-| 2025-12-23 | - | Creación de `CHECKPOINT.md` |
+| 2025-12-23 | 3-A | Creación de arquitectura y patrones |
+| 2025-12-23 | 3-B | Creación de modelado de datos |
 
 ---
 
 ## ⏸️ ESTADO: Esperando Aprobación
 
-> **Próxima acción requerida:** Usuario debe escribir "Aprobado" para avanzar a Fase 3.
+> **Próxima acción:** Usuario debe aprobar para avanzar a Fase 4.
 
 ---
 

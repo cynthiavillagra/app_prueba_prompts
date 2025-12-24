@@ -53,15 +53,23 @@ class TestSessionManager:
     """Tests para SessionManager (Singleton)."""
     
     @pytest.fixture(autouse=True)
-    def reset_singleton(self):
-        """Reset del singleton antes de cada test."""
+    def reset_singleton(self, mock_env_vars):
+        """Reset de todos los singletons antes de cada test."""
         from src.services.session_manager import SessionManager
+        from src.config.settings import Settings
+        
         SessionManager._instance = None
         SessionManager._initialized = False
+        Settings._instance = None
+        Settings._initialized = False
+        
         yield
+        
         # Cleanup
         SessionManager._instance = None
         SessionManager._initialized = False
+        Settings._instance = None
+        Settings._initialized = False
     
     @pytest.mark.unit
     def test_singleton_pattern(self, mock_env_vars):
@@ -221,22 +229,29 @@ class TestAuthService:
     """Tests para AuthService."""
     
     @pytest.fixture(autouse=True)
-    def reset_singletons(self):
-        """Reset de singletons."""
+    def reset_singletons(self, mock_env_vars):
+        """Reset de singletons antes y después de cada test."""
         from src.services.session_manager import SessionManager
         from src.repositories.supabase_client import SupabaseClient
         from src.config.settings import Settings
         
+        # Reset ANTES del test
         SessionManager._instance = None
         SessionManager._initialized = False
         SupabaseClient._instance = None
         SupabaseClient._initialized = False
         Settings._instance = None
+        Settings._initialized = False  # Importante: resetear _initialized
         
         yield
         
+        # Cleanup DESPUÉS del test
         SessionManager._instance = None
         SessionManager._initialized = False
+        SupabaseClient._instance = None
+        SupabaseClient._initialized = False
+        Settings._instance = None
+        Settings._initialized = False
     
     @pytest.mark.unit
     def test_auth_service_creation(self, mock_env_vars):
@@ -310,22 +325,29 @@ class TestNotasService:
     """Tests para NotasService."""
     
     @pytest.fixture(autouse=True)
-    def reset_singletons(self):
-        """Reset de singletons."""
+    def reset_singletons(self, mock_env_vars):
+        """Reset de singletons antes y después de cada test."""
         from src.services.session_manager import SessionManager
         from src.repositories.supabase_client import SupabaseClient
         from src.config.settings import Settings
         
+        # Reset ANTES del test
         SessionManager._instance = None
         SessionManager._initialized = False
         SupabaseClient._instance = None
         SupabaseClient._initialized = False
         Settings._instance = None
+        Settings._initialized = False
         
         yield
         
+        # Cleanup DESPUÉS del test
         SessionManager._instance = None
         SessionManager._initialized = False
+        SupabaseClient._instance = None
+        SupabaseClient._initialized = False
+        Settings._instance = None
+        Settings._initialized = False
     
     @pytest.mark.unit
     def test_notas_service_creation(self, mock_env_vars):

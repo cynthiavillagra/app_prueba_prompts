@@ -1,6 +1,11 @@
 # 📝 CRUD Didáctico con Supabase
 
-> **Aplicación CRUD de notas** desarrollada con Python POO (sin frameworks) + Supabase como BaaS.
+> **Aplicación CRUD de notas personales** desarrollada con Python POO (sin frameworks web) + Supabase como BaaS.
+
+[![Tests](https://img.shields.io/badge/tests-45%20passed-brightgreen)](tests/)
+[![Python](https://img.shields.io/badge/python-3.11+-blue)](https://python.org)
+[![Supabase](https://img.shields.io/badge/supabase-backend-green)](https://supabase.com)
+[![License](https://img.shields.io/badge/license-CC%20BY%204.0-orange)](LICENSE)
 
 ---
 
@@ -10,7 +15,7 @@ Este proyecto es una **aplicación didáctica** que implementa un CRUD completo 
 
 - **Programación Orientada a Objetos** en Python
 - **Patrones de Diseño** (Singleton, Strategy, Adapter, Factory)
-- **Integración con BaaS** (Supabase)
+- **Integración con BaaS** (Backend as a Service - Supabase)
 - **Arquitectura por Capas**
 - **Metodología SDLC** con documentación completa
 
@@ -22,17 +27,19 @@ Este proyecto es una **aplicación didáctica** que implementa un CRUD completo 
 
 Este proyecto está diseñado **exclusivamente** para:
 
-- ✅ **MVP (Minimum Viable Product)** - Pruebas de concepto
-- ✅ **Uso Local** - Desarrollo y aprendizaje
-- ✅ **Uso Pedagógico** - Enseñanza de conceptos
+| ✅ Uso Permitido | ❌ Uso NO Recomendado |
+|-----------------|----------------------|
+| MVP / Pruebas de concepto | Producción real |
+| Desarrollo local | Datos sensibles |
+| Uso pedagógico | Aplicaciones críticas |
+| Aprendizaje | Sin auditoría de seguridad |
 
-**NO debe ser desplegado en producción** porque:
-
-- ❌ No implementa HTTPS (solo HTTP)
-- ❌ No tiene rate limiting
-- ❌ Manejo básico de tokens
-- ❌ Sin logging de seguridad
-- ❌ Código no auditado para vulnerabilidades
+**Razones:**
+- No implementa HTTPS (solo HTTP)
+- No tiene rate limiting
+- Manejo básico de tokens
+- Sin logging de seguridad profesional
+- Código no auditado para vulnerabilidades
 
 ---
 
@@ -43,14 +50,14 @@ Este proyecto fue desarrollado utilizando **Inteligencia Artificial Generativa**
 | Herramienta | Uso |
 |-------------|-----|
 | **Google Antigravity** | IDE con asistente de IA integrado |
-| **Claude Opus Thinking 4.5** | Generación de código y documentación |
+| **Claude Opus 4** | Generación de código y documentación |
 
 ### Metodología de Desarrollo con IA
 
 1. **Prompt Engineering** - Instrucciones detalladas para cada fase SDLC
-2. **Revisión Humana** - Validación de cada archivo generado
-3. **Pruebas Atómicas** - Verificación de cada componente
-4. **Documentación Narrativa** - Manuales técnicos para cada archivo
+2. **Ciclo Atómico** - Código → Manual → Test → Aprobación
+3. **Revisión Humana** - Validación de cada archivo generado
+4. **Documentación Narrativa** - Manuales técnicos explicativos
 
 > ⚠️ **Nota:** El código generado por IA debe ser revisado cuidadosamente antes de cualquier uso.
 
@@ -64,40 +71,51 @@ Este proyecto fue desarrollado utilizando **Inteligencia Artificial Generativa**
 | **Paradigma** | POO (sin frameworks web) |
 | **Base de Datos** | Supabase (PostgreSQL) |
 | **Autenticación** | Supabase Auth (JWT) |
-| **Cliente DB** | supabase-py |
+| **Cliente DB** | supabase-py 2.x |
 | **Variables de Entorno** | python-dotenv |
-| **Interfaz** | CLI (Command Line Interface) |
+| **Testing** | pytest |
+| **Interfaz CLI** | Menú interactivo |
+| **Interfaz Web** | HTML/CSS/JS puro |
 
 ---
 
 ## 📁 Estructura del Proyecto
 
 ```
-proyecto/
-├── main.py                    # Entry point CLI (local)
-├── api/
-│   └── index.py               # Entry point API (Vercel)
-├── src/
-│   ├── config/
-│   │   └── settings.py        # Configuración (Singleton)
-│   ├── repositories/
-│   │   └── supabase_client.py # Cliente Supabase (Singleton)
-│   ├── models/
-│   │   ├── user.py            # Entidad Usuario
-│   │   └── nota.py            # Entidad Nota
-│   ├── services/
-│   │   ├── session_manager.py # Gestión de sesión (Singleton)
-│   │   ├── auth_service.py    # Autenticación (Strategy)
-│   │   └── notas_service.py   # CRUD de notas (Adapter)
-│   └── ui/
-│       └── menu.py            # Menú CLI
-├── database/
-│   └── init.sql               # Script de inicialización
-├── docs/                      # Documentación SDLC completa
-├── requirements.txt           # Dependencias
-├── vercel.json                # Config Vercel
-├── Dockerfile                 # Config Docker
-└── .env.example               # Plantilla de variables
+app_prueba_prompts/
+├── 📄 main.py                    # Entry point CLI (local)
+├── 📁 api/
+│   └── index.py                  # Entry point API + VercelBridge
+├── 📁 src/
+│   ├── 📁 config/
+│   │   └── settings.py           # Configuración (Singleton)
+│   ├── 📁 repositories/
+│   │   └── supabase_client.py    # Cliente Supabase (Singleton)
+│   ├── 📁 models/
+│   │   ├── user.py               # Entidad Usuario
+│   │   └── nota.py               # Entidad Nota
+│   ├── 📁 services/
+│   │   ├── session_manager.py    # Gestión de sesión (Singleton)
+│   │   ├── auth_service.py       # Autenticación (Strategy)
+│   │   └── notas_service.py      # CRUD notas (Adapter)
+│   └── 📁 ui/
+│       └── menu.py               # Menú CLI
+├── 📁 public/
+│   └── index.html                # Frontend HTML/CSS/JS
+├── 📁 database/
+│   └── init.sql                  # Script inicialización BD
+├── 📁 tests/
+│   ├── conftest.py               # Fixtures pytest
+│   ├── test_models.py            # Tests de modelos
+│   ├── test_services.py          # Tests de servicios
+│   └── test_api.py               # Tests de API
+├── 📁 docs/                      # Documentación SDLC (22 docs)
+├── 📄 requirements.txt           # Dependencias Python
+├── 📄 vercel.json                # Configuración Vercel
+├── 📄 Dockerfile                 # Contenedor Docker
+├── 📄 Procfile                   # Configuración Heroku
+├── 📄 .env.example               # Plantilla de variables
+└── 📄 LICENSE                    # CC BY 4.0
 ```
 
 ---
@@ -107,13 +125,13 @@ proyecto/
 ### 1. Clonar y Configurar
 
 ```bash
-git clone https://github.com/usuario/app_prueba_prompts.git
+git clone https://github.com/cynthiavillagra/app_prueba_prompts.git
 cd app_prueba_prompts
 
 # Crear entorno virtual
 python -m venv venv
 venv\Scripts\activate  # Windows
-source venv/bin/activate  # Linux/Mac
+# source venv/bin/activate  # Linux/Mac
 
 # Instalar dependencias
 pip install -r requirements.txt
@@ -123,43 +141,62 @@ pip install -r requirements.txt
 
 1. Crear proyecto en [supabase.com](https://supabase.com)
 2. Ejecutar `database/init.sql` en SQL Editor
-3. Copiar API keys a `.env`:
+3. Copiar API keys:
 
 ```bash
-cp .env.example .env
+copy .env.example .env
 # Editar .env con SUPABASE_URL y SUPABASE_KEY
 ```
 
 ### 3. Ejecutar
 
 ```bash
-# CLI Interactivo
+# CLI Interactivo (menú en terminal)
 python main.py
 
 # API HTTP (puerto 8000)
 python api/index.py
+# Luego abrir http://localhost:8000 en el navegador
 ```
+
+### 4. Ejecutar Tests
+
+```bash
+pytest tests/ -v
+# Resultado esperado: 45 passed
+```
+
+---
+
+## 📡 API Endpoints
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/health` | Health check | No |
+| `POST` | `/api/auth/login` | Iniciar sesión | No |
+| `POST` | `/api/auth/logout` | Cerrar sesión | Sí |
+| `GET` | `/api/notas` | Listar notas | Sí |
+| `POST` | `/api/notas` | Crear nota | Sí |
+| `DELETE` | `/api/notas?id=xxx` | Eliminar nota | Sí |
 
 ---
 
 ## 📚 Documentación SDLC
 
-| Fase | Documento |
-|------|-----------|
-| **Planificación** | `docs/01_planificacion.md` |
-| **Análisis** | `docs/02_analisis.md` |
-| **Diseño - Arquitectura** | `docs/03_a_1_arquitectura.md` |
-| **Diseño - Patrones** | `docs/03_a_2_patrones.md` |
-| **Diseño - Stateless** | `docs/03_a_3_stateless.md` |
-| **Diseño - Datos** | `docs/03_b_modelado_datos.md` |
-| **Diseño - API** | `docs/03_c_api_dinamica.md` |
-| **Base de Datos** | `docs/035_manual_bbdd.md` |
-| **Setup Local** | `docs/04_a_setup_local.md` |
-| **Manuales Técnicos** | `docs/04_b_*.md` |
+| Fase | Documento | Descripción |
+|------|-----------|-------------|
+| **1. Planificación** | `docs/01_planificacion.md` | Objetivos, alcance, riesgos |
+| **2. Análisis** | `docs/02_analisis.md` | Requisitos, HU, CU |
+| **3a. Arquitectura** | `docs/03_a_*.md` | Capas, patrones, stateless |
+| **3b. Datos** | `docs/03_b_modelado_datos.md` | DER, clases |
+| **3c. API** | `docs/03_c_api_dinamica.md` | Endpoints, secuencias |
+| **4. Implementación** | `docs/04_*.md` | Setup + 11 manuales técnicos |
+| **5. Testing** | `docs/05_*.md` | Plan UAT + ejecución |
+| **6. Deploy** | `docs/06_despliegue_cierre.md` | Guía de deploy |
 
 ---
 
-## 🔐 Seguridad Implementada
+## 🔐 Seguridad
 
 | Característica | Implementación |
 |----------------|----------------|
@@ -171,18 +208,42 @@ python api/index.py
 
 ---
 
+## 🧪 Tests
+
+```
+===== 45 passed, 12 warnings in 2.94s =====
+```
+
+| Módulo | Tests | Cobertura |
+|--------|-------|-----------|
+| Models | 14 | User, Nota |
+| Services | 19 | SessionManager, Auth, Notas |
+| API | 12 | VercelBridge endpoints |
+
+---
+
+## 📦 Deploy
+
+### Opciones Disponibles
+
+| Plataforma | Comando/Guía |
+|------------|--------------|
+| **Local** | `python api/index.py` |
+| **Docker** | `docker build -t crud-notas . && docker run -p 8000:8000 crud-notas` |
+| **Vercel** | Push a GitHub → Auto-deploy |
+| **Heroku** | `git push heroku main` |
+
+Ver guía completa en `docs/06_despliegue_cierre.md`.
+
+---
+
 ## 📜 Licencia
 
 Este proyecto está bajo licencia **Creative Commons Attribution 4.0 International (CC BY 4.0)**.
 
-Puedes:
 - ✅ Copiar y redistribuir
 - ✅ Modificar y adaptar
-- ✅ Uso comercial
-
-Con la condición de:
-- Dar crédito apropiado
-- Indicar si se realizaron cambios
+- ✅ Uso comercial (con atribución)
 
 Ver [LICENSE](LICENSE) para más detalles.
 
@@ -190,9 +251,11 @@ Ver [LICENSE](LICENSE) para más detalles.
 
 ## 👥 Créditos
 
-- **Desarrollo:** Asistido por IA (Claude + Antigravity)
-- **Supervisión:** Equipo de Desarrollo
-- **Documentación:** Generada con metodología SDLC
+| Rol | Detalle |
+|-----|---------|
+| **Desarrollo** | Asistido por IA (Claude + Antigravity) |
+| **Supervisión** | Revisión humana en cada ciclo |
+| **Documentación** | Metodología SDLC completa |
 
 ---
 
@@ -201,11 +264,11 @@ Ver [LICENSE](LICENSE) para más detalles.
 Este es un proyecto **didáctico**. Para consultas:
 
 1. Revisar documentación en `docs/`
-2. Consultar `docs/CHECKPOINT.md` para estado actual
+2. Ver `docs/CHECKPOINT.md` para estado actual
 3. Abrir issue en el repositorio
 
 ---
 
-> **Generado:** 2025-12-24  
 > **Versión:** 1.0.0  
-> **Stack:** Python POO + Supabase
+> **Fecha de cierre:** 2025-12-24  
+> **Estado:** ✅ COMPLETADO

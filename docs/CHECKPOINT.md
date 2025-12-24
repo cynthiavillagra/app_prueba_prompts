@@ -10,9 +10,9 @@
 
 | Aspecto | Valor |
 |---------|-------|
-| **Fase Actual** | Fase 4-B Completada (Infraestructura) |
-| **Último Archivo** | `README.md`, `LICENSE` (12/12) |
-| **% Completado** | 85% |
+| **Fase Actual** | Fase 5 En Progreso (Testing) |
+| **Último Archivo** | Tests + Plan UAT |
+| **% Completado** | 95% |
 
 ---
 
